@@ -73,7 +73,7 @@ fun! ipdbdebug#open() abort
             " autocmdの設定 (定期実行関数の呼び出し)
             aug ipdb_auto_command
                 au!
-                au CursorHold <buffer> call ipdbdebug#idle()
+                au CursorHold <buffer> call s:ipdbdebug#idle()
             aug END
             let s:ipdb.script_winid = win_getid()
             " デバッグウィンドウを開く
@@ -122,7 +122,7 @@ fun! ipdbdebug#exist() abort
     endif
 endf
 
-fun! ipdbdebug#idle() abort
+fun! s:ipdbdebug#idle() abort
     " ipdb起動中に定期的に実行する関数
     " (autocmdを利用している)
     "       au CursorHold <buffer> call ipdbdebug#idle()
@@ -144,15 +144,15 @@ fun! s:ipdbdebug#map()
             if l:mode ==? 'n' || l:mode ==? 'normal'
                 let l:cmd = 'nno '.s:ipdb.map_options.
                         \' '.l:map.
-                        \' '.':<C-u>call <SID>'.l:func.'<CR>'
+                        \' '.':<C-u>call '.l:func.'<CR>'
             elseif l:mode ==? 'v' || l:mode ==? 'visual'
                 let l:cmd = 'vno '.s:ipdb.map_options.
                         \' '.l:map.
-                        \' '.':<C-u>call <SID>'.l:func.'<CR>'
+                        \' '.':<C-u>call '.l:func.'<CR>'
             elseif l:mode ==? 't' || l:mode ==? 'terminal'
                 let l:cmd = 'tno '.s:ipdb.map_options.
                         \' '.l:map.
-                        \' '.'<C-\><C-n>:<C-u>call <SID>'.l:func.'<CR>'
+                        \' '.'<C-\><C-n>:<C-u>call '.l:func.'<CR>'
             else
                 continue
             endif
