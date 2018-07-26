@@ -158,6 +158,7 @@ fun! ipdbdebug#map()
         endfor
     endif
 endf
+
 fun! ipdbdebug#unmap()
     " キーマッピングを解除する関数
     if has_key(s:ipdb, 'maps') && has_key(s:ipdb, 'map_options')
