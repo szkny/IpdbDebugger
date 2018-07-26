@@ -69,17 +69,17 @@ fun! ipdbdebug#open() abort
                 silent call airline#add_statusline_func('ipdbdebug#statusline')
             endif
             " キーマッピングの設定
-            call s:ipdbdebug#map()
+            call ipdbdebug#map()
             " autocmdの設定 (定期実行関数の呼び出し)
             aug ipdb_auto_command
                 au!
-                au CursorHold <buffer> call s:ipdbdebug#idle()
+                au CursorHold <buffer> call ipdbdebug#idle()
             aug END
             let s:ipdb.script_winid = win_getid()
             " デバッグウィンドウを開く
             silent call splitterm#open('ipdb3', expand('%'))
             exe 'normal G'
-            call s:ipdbdebug#map()
+            call ipdbdebug#map()
             let s:ipdb.jobid = b:terminal_job_id
             let s:ipdb.debug_winid = win_getid()
             call win_gotoid(s:ipdb.script_winid)
@@ -98,7 +98,7 @@ fun! ipdbdebug#close()
         let &cpoptions = s:ipdb.save_cpo
         let &updatetime=s:ipdb.save_updatetime
         setlocal modifiable
-        call s:ipdbdebug#unmap()
+        call ipdbdebug#unmap()
     endif
     aug ipdb_auto_command
         au!
@@ -122,7 +122,7 @@ fun! ipdbdebug#exist() abort
     endif
 endf
 
-fun! s:ipdbdebug#idle() abort
+fun! ipdbdebug#idle() abort
     " ipdb起動中に定期的に実行する関数
     " (autocmdを利用している)
     "       au CursorHold <buffer> call ipdbdebug#idle()
@@ -136,7 +136,7 @@ fun! s:ipdbdebug#idle() abort
     endif
 endf
 
-fun! s:ipdbdebug#map()
+fun! ipdbdebug#map()
     " キーマッピングを行う関数
     if has_key(s:ipdb, 'maps') && has_key(s:ipdb, 'map_options')
         for [l:mode, l:map, l:func] in s:ipdb.maps
@@ -160,7 +160,7 @@ fun! s:ipdbdebug#map()
         endfor
     endif
 endf
-fun! s:ipdbdebug#unmap()
+fun! ipdbdebug#unmap()
     " キーマッピングを解除する関数
     if has_key(s:ipdb, 'maps') && has_key(s:ipdb, 'map_options')
         for [l:mode, l:map, l:func] in s:ipdb.maps
