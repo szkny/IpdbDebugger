@@ -125,65 +125,64 @@ fun! ipdbdebug#idle() abort
     endif
 endf
 
-" プラグインのマッピング
+let g:ipdbdebug_map_enabled = get(g:, 'ipdbdebug_map_enabled', 1)
 let s:ipdb.maps = [
-    \['terminal', '<Plug>(ipdbdebug_close)',            'ipdbdebug#close()'],
-    \['normal',   '<Plug>(ipdbdebug_close)',            'ipdbdebug#close()'],
-    \['normal',   '<Plug>(ipdbdebug_sigint)',           'ipdbdebug#sigint()'],
-    \['normal',   '<Plug>(ipdbdebug_enter)',            'ipdbdebug#jobsend()'],
-    \['normal',   '<Plug>(ipdbdebug_help)',             'ipdbdebug#jobsend("help")'],
-    \['normal',   '<Plug>(ipdbdebug_next)',             'ipdbdebug#jobsend("next")'],
-    \['normal',   '<Plug>(ipdbdebug_step)',             'ipdbdebug#jobsend("step")'],
-    \['normal',   '<Plug>(ipdbdebug_where)',            'ipdbdebug#jobsend("where")'],
-    \['normal',   '<Plug>(ipdbdebug_return)',           'ipdbdebug#jobsend("return")'],
-    \['normal',   '<Plug>(ipdbdebug_continue)',         'ipdbdebug#jobsend("continue")'],
-    \['normal',   '<Plug>(ipdbdebug_break)',            'ipdbdebug#jobsend("break ".line("."))'],
-    \['normal',   '<Plug>(ipdbdebug_until)',            'ipdbdebug#jobsend("until ".line("."))'],
-    \['normal',   '<Plug>(ipdbdebug_print)',            'ipdbdebug#jobsend("p ".expand("<cword>"))'],
-    \['visual',   '<Plug>(ipdbdebug_vprint)',           'ipdbdebug#vprint()'],
-    \['normal',   '<Plug>(ipdbdebug_goto_debugwin)',    'ipdbdebug#goto_debugwin()'],
-    \['terminal', '<Plug>(ipdbdebug_goto_scriptwin)',   'ipdbdebug#goto_scriptwin()'],
+    \['terminal', '<C-d>',      '<Plug>(ipdbdebug_close)'],
+    \['normal',   '<ESC>',      '<Plug>(ipdbdebug_close)'],
+    \['normal',   '<C-[>',      '<Plug>(ipdbdebug_close)'],
+    \['normal',   'q',          '<Plug>(ipdbdebug_close)'],
+    \['normal',   '<C-c>',      '<Plug>(ipdbdebug_sigint)'],
+    \['normal',   '<CR>',       '<Plug>(ipdbdebug_enter)'],
+    \['normal',   '<leader>h',  '<Plug>(ipdbdebug_help)'],
+    \['normal',   '<leader>n',  '<Plug>(ipdbdebug_next)'],
+    \['normal',   '<leader>s',  '<Plug>(ipdbdebug_step)'],
+    \['normal',   '<leader>w',  '<Plug>(ipdbdebug_where)'],
+    \['normal',   '<leader>r',  '<Plug>(ipdbdebug_return)'],
+    \['normal',   '<leader>c',  '<Plug>(ipdbdebug_continue)'],
+    \['normal',   '<leader>b',  '<Plug>(ipdbdebug_break)'],
+    \['normal',   '<leader>u',  '<Plug>(ipdbdebug_until)'],
+    \['normal',   '<leader>p',  '<Plug>(ipdbdebug_print)'],
+    \['visual',   '<leader>p',  '<Plug>(ipdbdebug_vprint)'],
+    \['normal',   'i',          '<Plug>(ipdbdebug_goto_debugwin)'],
+    \['terminal', '<ESC>',      '<Plug>(ipdbdebug_goto_scriptwin)'],
 \]   " mode       {lhs}         {rhs}
-let s:ipdb.map_options = '<script> <silent> <buffer> <nowait>'
-
-fun! ipdbdebug#map()
+let s:ipdb.map_options = '<silent> <buffer> <nowait>'
+fun! ipdbdebug#map() abort
     " キーマッピングを行う関数
     if has_key(s:ipdb, 'maps') && has_key(s:ipdb, 'map_options')
-        for [l:mode, l:map, l:func] in s:ipdb.maps
+                             \ && g:ipdbdebug_map_enabled
+        for [l:mode, l:key, l:plugmap] in s:ipdb.maps
             let l:cmd = ''
             if l:mode ==? 'n' || l:mode ==? 'normal'
-                let l:cmd = 'nno '.s:ipdb.map_options.
-                        \' '.l:map.
-                        \' '.':<C-u>call '.l:func.'<CR>'
+                let l:cmd = 'nmap'
             elseif l:mode ==? 'v' || l:mode ==? 'visual'
-                let l:cmd = 'vno '.s:ipdb.map_options.
-                        \' '.l:map.
-                        \' '.':<C-u>call '.l:func.'<CR>'
+                let l:cmd = 'vmap'
             elseif l:mode ==? 't' || l:mode ==? 'terminal'
-                let l:cmd = 'tno '.s:ipdb.map_options.
-                        \' '.l:map.
-                        \' '.'<C-\><C-n>:<C-u>call '.l:func.'<CR>'
+                let l:cmd = 'tmap'
             else
                 continue
             endif
+            let l:cmd .= ' '.s:ipdb.map_options.' '.l:key.' '.l:plugmap
+            " echo l:cmd
             silent exe l:cmd
         endfor
     endif
 endf
 
-fun! ipdbdebug#unmap()
+fun! ipdbdebug#unmap() abort
     " キーマッピングを解除する関数
     if has_key(s:ipdb, 'maps') && has_key(s:ipdb, 'map_options')
         for [l:mode, l:map, l:func] in s:ipdb.maps
             if l:mode ==? 'n' || l:mode ==? 'normal'
-                let l:cmd = 'nunmap'.s:ipdb.map_options.l:map
+                let l:cmd = 'nunmap'
             elseif l:mode ==? 'v' || l:mode ==? 'visual'
-                let l:cmd = 'vunmap'.s:ipdb.map_options.l:map
+                let l:cmd = 'vunmap'
             elseif l:mode ==? 't' || l:mode ==? 'terminal'
-                let l:cmd = 'tunmap'.s:ipdb.map_options.l:map
+                let l:cmd = 'tunmap'
             else
                 continue
             endif
+            let l:cmd .= ' '.s:ipdb.map_options.' '.l:map
             try
                 silent exe l:cmd
             catch
@@ -252,3 +251,38 @@ fun! ipdbdebug#statusline(...)
     let w:airline_section_b = g:airline_section_b
     let w:airline_section_c = g:airline_section_c
 endf
+
+
+" プラグインマッピング
+tno <buffer><silent> <Plug>(ipdbdebug_close)
+                   \ <C-\><C-n>:<C-u>call ipdbdebug#close()<CR>
+nno <buffer><silent> <Plug>(ipdbdebug_close)
+                   \ :<C-u>call ipdbdebug#close()<CR>
+nno <buffer><silent> <Plug>(ipdbdebug_sigint)
+                   \ :<C-u>call ipdbdebug#sigint()<CR>
+nno <buffer><silent> <Plug>(ipdbdebug_enter):
+                   \ :<C-u>call ipdbdebug#jobsend()<CR>
+nno <buffer><silent> <Plug>(ipdbdebug_help)
+                   \ :<C-u>call ipdbdebug#jobsend("help")<CR>
+nno <buffer><silent> <Plug>(ipdbdebug_next)
+                   \ :<C-u>call ipdbdebug#jobsend("next")<CR>
+nno <buffer><silent> <Plug>(ipdbdebug_step)
+                   \ :<C-u>call ipdbdebug#jobsend("step")<CR>
+nno <buffer><silent> <Plug>(ipdbdebug_where)
+                   \ :<C-u>call ipdbdebug#jobsend("where")<CR>
+nno <buffer><silent> <Plug>(ipdbdebug_return)
+                   \ :<C-u>call ipdbdebug#jobsend("return")<CR>
+nno <buffer><silent> <Plug>(ipdbdebug_continue)
+                   \ :<C-u>call ipdbdebug#jobsend("continue")<CR>
+nno <buffer><silent> <Plug>(ipdbdebug_break)
+                   \ :<C-u>call ipdbdebug#jobsend("break ".line("."))<CR>
+nno <buffer><silent> <Plug>(ipdbdebug_until)
+                   \ :<C-u>call ipdbdebug#jobsend("until ".line("."))<CR>
+nno <buffer><silent> <Plug>(ipdbdebug_print)
+                   \ :<C-u>call ipdbdebug#jobsend("p ".expand("<cword>"))<CR>
+vno <buffer><silent> <Plug>(ipdbdebug_vprint)
+                   \ :<C-u>call ipdbdebug#vprint()<CR>
+nno <buffer><silent> <Plug>(ipdbdebug_goto_debugwin)
+                   \ :<C-u>call ipdbdebug#goto_debugwin()<CR>
+tno <buffer><silent> <Plug>(ipdbdebug_goto_scriptwin)
+                   \ <C-\><C-n>:<C-u>call ipdbdebug#goto_scriptwin()<CR>
