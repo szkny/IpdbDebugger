@@ -121,5 +121,3 @@ fun! s:Vsplitwidth() abort
     let l:width = l:width>l:max_winwidth ? l:max_winwidth : l:width
     return l:width
 endf
-
-
