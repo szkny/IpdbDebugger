@@ -7,7 +7,7 @@ scriptencoding utf-8
 
 "" ipdbによるPythonデバッガプラグイン
 " TODO:
-"   - ipdbdebug#unmap()のデバッグ
+"   - ipdbdebug#map/unmap()のデバッグ
 "   - PUDB風にする
 "       - ブレークポイントのハイライト
 "       - ステップ実行時のカーソル自動移動
@@ -164,6 +164,7 @@ fun! ipdbdebug#map() abort
                 continue
             endif
             let l:cmd .= ' '.s:ipdb.map_options.' '.l:key.' '.l:plugmap
+            " echo l:cmd
             silent exe l:cmd
         endfor
     endif
