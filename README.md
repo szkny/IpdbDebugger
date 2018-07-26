@@ -2,7 +2,7 @@
 
 ## About
 
-IpdbDebugger.vim is a python debuger plugin for Neovim.
+IpdbDebugger.vim is a python debuger plugin for Neovim.  
 It is based on neovim terminal and ipdb.
 
 # Install

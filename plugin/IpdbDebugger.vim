@@ -10,6 +10,6 @@ if !has('nvim')
 endif
 
 nmap <silent><C-p> :IpdbDebug<CR>
-command! IpdbDebug call s:ipdb_open()
-command! IpdbDebugClose call s:ipdb_close()
-command! IpdbDebugToggle call s:ipdb_toggle()
+command! IpdbDebug call ipdbdebug#open()
+command! IpdbDebugClose call ipdbdebug#close()
+command! IpdbDebugToggle call ipdbdebug#toggle()
