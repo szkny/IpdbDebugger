@@ -125,9 +125,8 @@ fun! ipdbdebug#idle() abort
     endif
 endf
 
-let g:ipdbdebug_map_enabled = get(g:, 'ipdbdebug_map_enabled', 1)
+" let g:ipdbdebug_map_enabled = get(g:, 'ipdbdebug_map_enabled', 1)
 let s:ipdb.maps = [
-    \['terminal', '<C-d>',      '<Plug>(ipdbdebug_close)'],
     \['normal',   '<ESC>',      '<Plug>(ipdbdebug_close)'],
     \['normal',   '<C-[>',      '<Plug>(ipdbdebug_close)'],
     \['normal',   'q',          '<Plug>(ipdbdebug_close)'],
@@ -144,7 +143,8 @@ let s:ipdb.maps = [
     \['normal',   '<leader>p',  '<Plug>(ipdbdebug_print)'],
     \['visual',   '<leader>p',  '<Plug>(ipdbdebug_vprint)'],
     \['normal',   'i',          '<Plug>(ipdbdebug_goto_debugwin)'],
-    \['terminal', '<ESC>',      '<Plug>(ipdbdebug_goto_scriptwin)'],
+    \['terminal', '<ESC>',      '<C-\><C-n>:<C-u>call ipdbdebug#goto_scriptwin()<CR>'],
+    \['terminal', '<C-d>',      '<C-\><C-n>:<C-u>call ipdbdebug#close()<CR>'],
 \]   " mode       {lhs}         {rhs}
 let s:ipdb.map_options = '<silent> <buffer> <nowait>'
 fun! ipdbdebug#map() abort
@@ -163,7 +163,6 @@ fun! ipdbdebug#map() abort
                 continue
             endif
             let l:cmd .= ' '.s:ipdb.map_options.' '.l:key.' '.l:plugmap
-            " echo l:cmd
             silent exe l:cmd
         endfor
     endif
@@ -240,7 +239,6 @@ endf
 fun! ipdbdebug#goto_scriptwin() abort
     " idpbのスクリプトウィンドウにいどうする関数
     if ipdbdebug#exist() && has_key(s:ipdb, 'script_winid')
-        exe "normal \<C-\>\<C-n>"
         call win_gotoid(s:ipdb.script_winid)
     endif
 endf
@@ -254,13 +252,11 @@ endf
 
 
 " プラグインマッピング
-tno <buffer><silent> <Plug>(ipdbdebug_close)
-                   \ <C-\><C-n>:<C-u>call ipdbdebug#close()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_close)
                    \ :<C-u>call ipdbdebug#close()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_sigint)
                    \ :<C-u>call ipdbdebug#sigint()<CR>
-nno <buffer><silent> <Plug>(ipdbdebug_enter):
+nno <buffer><silent> <Plug>(ipdbdebug_enter)
                    \ :<C-u>call ipdbdebug#jobsend()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_help)
                    \ :<C-u>call ipdbdebug#jobsend("help")<CR>
@@ -282,7 +278,3 @@ nno <buffer><silent> <Plug>(ipdbdebug_print)
                    \ :<C-u>call ipdbdebug#jobsend("p ".expand("<cword>"))<CR>
 vno <buffer><silent> <Plug>(ipdbdebug_vprint)
                    \ :<C-u>call ipdbdebug#vprint()<CR>
-nno <buffer><silent> <Plug>(ipdbdebug_goto_debugwin)
-                   \ :<C-u>call ipdbdebug#goto_debugwin()<CR>
-tno <buffer><silent> <Plug>(ipdbdebug_goto_scriptwin)
-                   \ <C-\><C-n>:<C-u>call ipdbdebug#goto_scriptwin()<CR>
