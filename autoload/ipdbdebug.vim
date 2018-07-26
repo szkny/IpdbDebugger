@@ -7,6 +7,7 @@ scriptencoding utf-8
 
 "" ipdbによるPythonデバッガプラグイン
 " TODO:
+"   - ipdbdebug#unmap()のデバッグ
 "   - PUDB風にする
 "       - ブレークポイントのハイライト
 "       - ステップ実行時のカーソル自動移動
