@@ -15,6 +15,7 @@ command! IpdbDebugToggle call ipdbdebug#toggle()
 
 let g:ipdbdebug_map_enabled = get(g:, 'ipdbdebug_map_enabled', 1)
 
+
 if g:ipdbdebug_map_enabled
     nno  <silent><C-p> :IpdbDebug<CR>
     nmap q          <Plug>(ipdbdebug_close)
