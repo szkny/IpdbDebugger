@@ -1,5 +1,5 @@
 "=============================================================================
-" FILE: IpdbDebugger.vim
+" FILE:    ipdbdebug.vim
 " AUTHOR:  Sohei Suzuki <s.s1008 at gmail.com>
 " License: MIT license
 "=============================================================================
@@ -14,24 +14,22 @@ scriptencoding utf-8
 "       - airlineのモードカラー連携
 let s:ipdb = {}
 let s:ipdb.maps = [
-    \['terminal', '<C-d>',      'ipdbdebug#close()'],
-    \['normal',   'q',          'ipdbdebug#close()'],
-    \['normal',   '<ESC>',      'ipdbdebug#close()'],
-    \['normal',   '<C-[>',      'ipdbdebug#close()'],
-    \['normal',   '<C-c>',      'ipdbdebug#sigint()'],
-    \['normal',   '<CR>',       'ipdbdebug#jobsend()'],
-    \['normal',   'i',          'ipdbdebug#goto_debugwin()'],
-    \['terminal', '<ESC>',      'ipdbdebug#goto_scriptwin()'],
-    \['normal',   '<leader>h',  'ipdbdebug#jobsend("help")'],
-    \['normal',   '<leader>n',  'ipdbdebug#jobsend("next")'],
-    \['normal',   '<leader>s',  'ipdbdebug#jobsend("step")'],
-    \['normal',   '<leader>w',  'ipdbdebug#jobsend("where")'],
-    \['normal',   '<leader>r',  'ipdbdebug#jobsend("return")'],
-    \['normal',   '<leader>c',  'ipdbdebug#jobsend("continue")'],
-    \['normal',   '<leader>b',  'ipdbdebug#jobsend("break ".line("."))'],
-    \['normal',   '<leader>u',  'ipdbdebug#jobsend("until ".line("."))'],
-    \['normal',   '<leader>p',  'ipdbdebug#jobsend("p ".expand("<cword>"))'],
-    \['visual',   '<leader>p',  'ipdbdebug#vprint()'],
+    \['terminal', '<Plug>(ipdbdebug_close)',            'ipdbdebug#close()'],
+    \['normal',   '<Plug>(ipdbdebug_close)',            'ipdbdebug#close()'],
+    \['normal',   '<Plug>(ipdbdebug_sigint)',           'ipdbdebug#sigint()'],
+    \['normal',   '<Plug>(ipdbdebug_enter)',            'ipdbdebug#jobsend()'],
+    \['normal',   '<Plug>(ipdbdebug_help)',             'ipdbdebug#jobsend("help")'],
+    \['normal',   '<Plug>(ipdbdebug_next)',             'ipdbdebug#jobsend("next")'],
+    \['normal',   '<Plug>(ipdbdebug_step)',             'ipdbdebug#jobsend("step")'],
+    \['normal',   '<Plug>(ipdbdebug_where)',            'ipdbdebug#jobsend("where")'],
+    \['normal',   '<Plug>(ipdbdebug_return)',           'ipdbdebug#jobsend("return")'],
+    \['normal',   '<Plug>(ipdbdebug_continue)',         'ipdbdebug#jobsend("continue")'],
+    \['normal',   '<Plug>(ipdbdebug_break)',            'ipdbdebug#jobsend("break ".line("."))'],
+    \['normal',   '<Plug>(ipdbdebug_until)',            'ipdbdebug#jobsend("until ".line("."))'],
+    \['normal',   '<Plug>(ipdbdebug_print)',            'ipdbdebug#jobsend("p ".expand("<cword>"))'],
+    \['visual',   '<Plug>(ipdbdebug_vprint)',           'ipdbdebug#vprint()'],
+    \['normal',   '<Plug>(ipdbdebug_goto_debugwin)',    'ipdbdebug#goto_debugwin()'],
+    \['terminal', '<Plug>(ipdbdebug_goto_scriptwin)',   'ipdbdebug#goto_scriptwin()'],
 \]   " mode       {lhs}         {rhs}
 let s:ipdb.map_options = '<script> <silent> <buffer> <nowait>'
 
