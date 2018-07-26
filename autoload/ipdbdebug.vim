@@ -77,7 +77,7 @@ fun! ipdbdebug#open() abort
             aug END
             let s:ipdb.script_winid = win_getid()
             " デバッグウィンドウを開く
-            silent call ipdbdebug#splitterm('ipdb3', expand('%'))
+            silent call splitterm#open('ipdb3', expand('%'))
             exe 'normal G'
             call s:ipdbdebug#map()
             let s:ipdb.jobid = b:terminal_job_id
