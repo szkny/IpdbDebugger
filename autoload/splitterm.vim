@@ -5,6 +5,12 @@
 "=============================================================================
 scriptencoding utf-8
 
+" include guard
+if !has('nvim') || exists('g:ipdbdebugger_splitterm_loaded')
+    finish
+endif
+let g:ipdbdebugger_splitterm_loaded = 1
+
 fun! splitterm#open(...) abort
     " 分割ウィンドウでターミナルモードを開始する関数
     "      縦分割か横分割かは現在のファイル内の文字数と

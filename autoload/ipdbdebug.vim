@@ -13,28 +13,18 @@ scriptencoding utf-8
 "       - ステップ実行時のカーソル自動移動
 "       - スタックトレースの表示
 "       - airlineのモードカラー連携
+
+" include guard
+if !has('nvim') || exists('g:ipdbdebugger_ipdbdebug_loaded')
+    finish
+endif
+let g:ipdbdebugger_ipdbdebug_loaded = 1
+
+" ipdbdebuggerのインスタンス
 let s:ipdb = {}
-let s:ipdb.maps = [
-    \['terminal', '<Plug>(ipdbdebug_close)',            'ipdbdebug#close()'],
-    \['normal',   '<Plug>(ipdbdebug_close)',            'ipdbdebug#close()'],
-    \['normal',   '<Plug>(ipdbdebug_sigint)',           'ipdbdebug#sigint()'],
-    \['normal',   '<Plug>(ipdbdebug_enter)',            'ipdbdebug#jobsend()'],
-    \['normal',   '<Plug>(ipdbdebug_help)',             'ipdbdebug#jobsend("help")'],
-    \['normal',   '<Plug>(ipdbdebug_next)',             'ipdbdebug#jobsend("next")'],
-    \['normal',   '<Plug>(ipdbdebug_step)',             'ipdbdebug#jobsend("step")'],
-    \['normal',   '<Plug>(ipdbdebug_where)',            'ipdbdebug#jobsend("where")'],
-    \['normal',   '<Plug>(ipdbdebug_return)',           'ipdbdebug#jobsend("return")'],
-    \['normal',   '<Plug>(ipdbdebug_continue)',         'ipdbdebug#jobsend("continue")'],
-    \['normal',   '<Plug>(ipdbdebug_break)',            'ipdbdebug#jobsend("break ".line("."))'],
-    \['normal',   '<Plug>(ipdbdebug_until)',            'ipdbdebug#jobsend("until ".line("."))'],
-    \['normal',   '<Plug>(ipdbdebug_print)',            'ipdbdebug#jobsend("p ".expand("<cword>"))'],
-    \['visual',   '<Plug>(ipdbdebug_vprint)',           'ipdbdebug#vprint()'],
-    \['normal',   '<Plug>(ipdbdebug_goto_debugwin)',    'ipdbdebug#goto_debugwin()'],
-    \['terminal', '<Plug>(ipdbdebug_goto_scriptwin)',   'ipdbdebug#goto_scriptwin()'],
-\]   " mode       {lhs}         {rhs}
-let s:ipdb.map_options = '<script> <silent> <buffer> <nowait>'
 
 fun! ipdbdebug#toggle() abort
+    " Ipdbの起動/終了を行う関数
     if ipdbdebug#exist()
         call ipdbdebug#close()
     else
@@ -134,6 +124,27 @@ fun! ipdbdebug#idle() abort
         call ipdbdebug#close()
     endif
 endf
+
+" プラグインのマッピング
+let s:ipdb.maps = [
+    \['terminal', '<Plug>(ipdbdebug_close)',            'ipdbdebug#close()'],
+    \['normal',   '<Plug>(ipdbdebug_close)',            'ipdbdebug#close()'],
+    \['normal',   '<Plug>(ipdbdebug_sigint)',           'ipdbdebug#sigint()'],
+    \['normal',   '<Plug>(ipdbdebug_enter)',            'ipdbdebug#jobsend()'],
+    \['normal',   '<Plug>(ipdbdebug_help)',             'ipdbdebug#jobsend("help")'],
+    \['normal',   '<Plug>(ipdbdebug_next)',             'ipdbdebug#jobsend("next")'],
+    \['normal',   '<Plug>(ipdbdebug_step)',             'ipdbdebug#jobsend("step")'],
+    \['normal',   '<Plug>(ipdbdebug_where)',            'ipdbdebug#jobsend("where")'],
+    \['normal',   '<Plug>(ipdbdebug_return)',           'ipdbdebug#jobsend("return")'],
+    \['normal',   '<Plug>(ipdbdebug_continue)',         'ipdbdebug#jobsend("continue")'],
+    \['normal',   '<Plug>(ipdbdebug_break)',            'ipdbdebug#jobsend("break ".line("."))'],
+    \['normal',   '<Plug>(ipdbdebug_until)',            'ipdbdebug#jobsend("until ".line("."))'],
+    \['normal',   '<Plug>(ipdbdebug_print)',            'ipdbdebug#jobsend("p ".expand("<cword>"))'],
+    \['visual',   '<Plug>(ipdbdebug_vprint)',           'ipdbdebug#vprint()'],
+    \['normal',   '<Plug>(ipdbdebug_goto_debugwin)',    'ipdbdebug#goto_debugwin()'],
+    \['terminal', '<Plug>(ipdbdebug_goto_scriptwin)',   'ipdbdebug#goto_scriptwin()'],
+\]   " mode       {lhs}         {rhs}
+let s:ipdb.map_options = '<script> <silent> <buffer> <nowait>'
 
 fun! ipdbdebug#map()
     " キーマッピングを行う関数
