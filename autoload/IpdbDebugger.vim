@@ -14,39 +14,39 @@ scriptencoding utf-8
 "       - airlineのモードカラー連携
 let s:ipdb = {}
 let s:ipdb.maps = [
-    \['terminal', '<C-d>',      'ipdb_close()'],
-    \['normal',   'q',          'ipdb_close()'],
-    \['normal',   '<ESC>',      'ipdb_close()'],
-    \['normal',   '<C-[>',      'ipdb_close()'],
-    \['normal',   '<C-c>',      'ipdb_sigint()'],
-    \['normal',   '<CR>',       'ipdb_jobsend()'],
-    \['normal',   'i',          'ipdb_goto_debugwin()'],
-    \['terminal', '<ESC>',      'ipdb_goto_scriptwin()'],
-    \['normal',   '<leader>h',  'ipdb_jobsend("help")'],
-    \['normal',   '<leader>n',  'ipdb_jobsend("next")'],
-    \['normal',   '<leader>s',  'ipdb_jobsend("step")'],
-    \['normal',   '<leader>w',  'ipdb_jobsend("where")'],
-    \['normal',   '<leader>r',  'ipdb_jobsend("return")'],
-    \['normal',   '<leader>c',  'ipdb_jobsend("continue")'],
-    \['normal',   '<leader>b',  'ipdb_jobsend("break ".line("."))'],
-    \['normal',   '<leader>u',  'ipdb_jobsend("until ".line("."))'],
-    \['normal',   '<leader>p',  'ipdb_jobsend("p ".expand("<cword>"))'],
-    \['visual',   '<leader>p',  'ipdb_vprint()'],
+    \['terminal', '<C-d>',      'ipdbdebug#close()'],
+    \['normal',   'q',          'ipdbdebug#close()'],
+    \['normal',   '<ESC>',      'ipdbdebug#close()'],
+    \['normal',   '<C-[>',      'ipdbdebug#close()'],
+    \['normal',   '<C-c>',      'ipdbdebug#sigint()'],
+    \['normal',   '<CR>',       'ipdbdebug#jobsend()'],
+    \['normal',   'i',          'ipdbdebug#goto_debugwin()'],
+    \['terminal', '<ESC>',      'ipdbdebug#goto_scriptwin()'],
+    \['normal',   '<leader>h',  'ipdbdebug#jobsend("help")'],
+    \['normal',   '<leader>n',  'ipdbdebug#jobsend("next")'],
+    \['normal',   '<leader>s',  'ipdbdebug#jobsend("step")'],
+    \['normal',   '<leader>w',  'ipdbdebug#jobsend("where")'],
+    \['normal',   '<leader>r',  'ipdbdebug#jobsend("return")'],
+    \['normal',   '<leader>c',  'ipdbdebug#jobsend("continue")'],
+    \['normal',   '<leader>b',  'ipdbdebug#jobsend("break ".line("."))'],
+    \['normal',   '<leader>u',  'ipdbdebug#jobsend("until ".line("."))'],
+    \['normal',   '<leader>p',  'ipdbdebug#jobsend("p ".expand("<cword>"))'],
+    \['visual',   '<leader>p',  'ipdbdebug#vprint()'],
 \]   " mode       {lhs}         {rhs}
 let s:ipdb.map_options = '<script> <silent> <buffer> <nowait>'
 
-fun! s:ipdb_toggle() abort
-    if s:ipdb_exist()
-        call s:ipdb_close()
+fun! ipdbdebug#toggle() abort
+    if ipdbdebug#exist()
+        call ipdbdebug#close()
     else
-        call s:ipdb_open()
+        call ipdbdebug#open()
     endif
 endf
 
-fun! s:ipdb_open() abort
+fun! ipdbdebug#open() abort
     " Ipdbを起動する関数
     if &filetype ==# 'python'
-        if !s:ipdb_exist()
+        if !ipdbdebug#exist()
             " ipdbが無ければインストール
             if !executable('ipdb3')
                 echon 'Ipdb: [error] ipdb does not exist.'
@@ -66,20 +66,20 @@ fun! s:ipdb_open() abort
             setlocal updatetime=100
             setlocal nomodifiable
             if exists('*airline#add_statusline_func')
-                silent call airline#add_statusline_func('IpdbStatusLine')
+                silent call airline#add_statusline_func('ipdbdebug#statusline')
             endif
             " キーマッピングの設定
-            call s:ipdb_map()
+            call s:ipdbdebug#map()
             " autocmdの設定 (定期実行関数の呼び出し)
             aug ipdb_auto_command
                 au!
-                au CursorHold <buffer> call s:ipdb_idle()
+                au CursorHold <buffer> call ipdbdebug#idle()
             aug END
             let s:ipdb.script_winid = win_getid()
             " デバッグウィンドウを開く
             silent call SplitTerm('ipdb3', expand('%'))
             exe 'normal G'
-            call s:ipdb_map()
+            call s:ipdbdebug#map()
             let s:ipdb.jobid = b:terminal_job_id
             let s:ipdb.debug_winid = win_getid()
             call win_gotoid(s:ipdb.script_winid)
@@ -89,16 +89,16 @@ fun! s:ipdb_open() abort
     endif
 endf
 
-fun! s:ipdb_close()
+fun! ipdbdebug#close()
     " ipdbを終了する関数
     if win_gotoid(s:ipdb.script_winid)
         if exists('*airline#remove_statusline_func')
-            silent call airline#remove_statusline_func('IpdbStatusLine')
+            silent call airline#remove_statusline_func('ipdbdebug#statusline')
         endif
         let &cpoptions = s:ipdb.save_cpo
         let &updatetime=s:ipdb.save_updatetime
         setlocal modifiable
-        call s:ipdb_unmap()
+        call s:ipdbdebug#unmap()
     endif
     aug ipdb_auto_command
         au!
@@ -110,7 +110,7 @@ fun! s:ipdb_close()
     unlet s:ipdb.jobid
 endf
 
-fun! s:ipdb_exist() abort
+fun! ipdbdebug#exist() abort
     " ipdbを起動しているか確認する関数
     let l:current_winid = win_getid()
     if has_key(s:ipdb, 'jobid') && has_key(s:ipdb, 'debug_winid')
@@ -122,21 +122,21 @@ fun! s:ipdb_exist() abort
     endif
 endf
 
-fun! s:ipdb_idle() abort
+fun! ipdbdebug#idle() abort
     " ipdb起動中に定期的に実行する関数
     " (autocmdを利用している)
-    "       au CursorHold <buffer> call s:ipdb_idle()
-    " s:ipdb_open()関数で、
+    "       au CursorHold <buffer> call ipdbdebug#idle()
+    " ipdbdebug#open()関数で、
     "       setlocal updatetime=100
     " と記述して更新間隔を設定 (ミリ秒)
-    if s:ipdb_exist()
+    if ipdbdebug#exist()
         echon '-- DEBUG --'
     else
-        call s:ipdb_close()
+        call ipdbdebug#close()
     endif
 endf
 
-fun! s:ipdb_map()
+fun! s:ipdbdebug#map()
     " キーマッピングを行う関数
     if has_key(s:ipdb, 'maps') && has_key(s:ipdb, 'map_options')
         for [l:mode, l:map, l:func] in s:ipdb.maps
@@ -160,7 +160,7 @@ fun! s:ipdb_map()
         endfor
     endif
 endf
-fun! s:ipdb_unmap()
+fun! s:ipdbdebug#unmap()
     " キーマッピングを解除する関数
     if has_key(s:ipdb, 'maps') && has_key(s:ipdb, 'map_options')
         for [l:mode, l:map, l:func] in s:ipdb.maps
@@ -182,10 +182,10 @@ fun! s:ipdb_unmap()
     endif
 endf
 
-fun! s:ipdb_jobsend(...) abort
+fun! ipdbdebug#jobsend(...) abort
     " ipdbにコマンドを送る関数
-    "    call s:ipdb_jobsend('ipdbコマンド')
-    if s:ipdb_exist() && a:0 > 0
+    "    call ipdbdebug#jobsend('ipdbコマンド')
+    if ipdbdebug#exist() && a:0 > 0
         let l:command = a:1
         for l:arg in a:000[1:]
             let l:command .= ' ' . l:arg
@@ -193,21 +193,21 @@ fun! s:ipdb_jobsend(...) abort
         try
             call jobsend(s:ipdb.jobid, l:command."\<CR>")
         catch
-            call s:ipdb_close()
+            call ipdbdebug#close()
         endtry
     endif
 endf
 
-fun! s:ipdb_sigint() abort
+fun! ipdbdebug#sigint() abort
     " ipdbにSIGINT(<C-c>)を送る関数
-    if s:ipdb_exist()
+    if ipdbdebug#exist()
         call jobsend(s:ipdb.jobid, "\<C-c>")
     endif
 endf
 
-fun! s:ipdb_vprint() abort
+fun! ipdbdebug#vprint() abort
     " ipdbにvisualモードで選択した変数を送りprintさせる関数
-    if s:ipdb_exist()
+    if ipdbdebug#exist()
         let @@ = ''
         exe 'silent normal gvy'
         if @@ !=# ''
@@ -215,27 +215,27 @@ fun! s:ipdb_vprint() abort
         else
             let l:text = expand('<cword>')
         endif
-        call s:ipdb_jobsend('p '.l:text)
+        call ipdbdebug#jobsend('p '.l:text)
     endif
 endf
 
-fun! s:ipdb_goto_debugwin() abort
+fun! ipdbdebug#goto_debugwin() abort
     " ipdbのデバッグウィンドウに移動する関数
-    if s:ipdb_exist() && has_key(s:ipdb, 'debug_winid')
+    if ipdbdebug#exist() && has_key(s:ipdb, 'debug_winid')
         call win_gotoid(s:ipdb.debug_winid)
         startinsert
     endif
 endf
 
-fun! s:ipdb_goto_scriptwin() abort
+fun! ipdbdebug#goto_scriptwin() abort
     " idpbのスクリプトウィンドウにいどうする関数
-    if s:ipdb_exist() && has_key(s:ipdb, 'script_winid')
+    if ipdbdebug#exist() && has_key(s:ipdb, 'script_winid')
         exe "normal \<C-\>\<C-n>"
         call win_gotoid(s:ipdb.script_winid)
     endif
 endf
 
-fun! IpdbStatusLine(...)
+fun! ipdbdebug#statusline(...)
     " ipdbデバッグモード用のairline(plugin)の設定
     let w:airline_section_a = '%#__accent_bold#IPDB'
     let w:airline_section_b = g:airline_section_b
