@@ -96,13 +96,16 @@ fun! ipdbdebug#close()
         quit
     endif
     echon
-    unlet s:ipdb.jobid
+    if has_key(s:ipdb, 'jobid')
+        unlet s:ipdb.jobid
+    endif
 endf
 
 fun! ipdbdebug#exist() abort
     " ipdbを起動しているか確認する関数
     let l:current_winid = win_getid()
-    if has_key(s:ipdb, 'jobid') && has_key(s:ipdb, 'debug_winid')
+    if has_key(s:ipdb, 'jobid')
+      \&& has_key(s:ipdb, 'debug_winid')
         \&& win_gotoid(s:ipdb.debug_winid)
         call win_gotoid(l:current_winid)
         return 1
@@ -119,7 +122,7 @@ fun! ipdbdebug#idle() abort
     "       setlocal updatetime=100
     " と記述して更新間隔を設定 (ミリ秒)
     if ipdbdebug#exist()
-        echon '-- DEBUG --'
+        " echon '-- DEBUG --'
     else
         call ipdbdebug#close()
     endif
@@ -163,7 +166,6 @@ fun! ipdbdebug#map() abort
                 continue
             endif
             let l:cmd .= ' '.s:ipdb.map_options.' '.l:key.' '.l:plugmap
-            " echo l:cmd
             silent exe l:cmd
         endfor
     endif
@@ -195,11 +197,14 @@ endf
 fun! ipdbdebug#jobsend(...) abort
     " ipdbにコマンドを送る関数
     "    call ipdbdebug#jobsend('ipdbコマンド')
-    if ipdbdebug#exist() && a:0 > 0
-        let l:command = a:1
-        for l:arg in a:000[1:]
-            let l:command .= ' ' . l:arg
-        endfor
+    if ipdbdebug#exist()
+        let l:command = ''
+        if a:0 > 0
+            let l:command = a:1
+            for l:arg in a:000[1:]
+                let l:command .= ' ' . l:arg
+            endfor
+        endif
         try
             call jobsend(s:ipdb.jobid, l:command."\<CR>")
         catch
@@ -255,34 +260,34 @@ endf
 
 " プラグインマッピング
 tno <buffer><silent> <Plug>(ipdbdebug_close)
-                   \ <C-\><C-n>:<C-u>call ipdbdebug#close()<CR>
+                    \ <C-\><C-n>:<C-u>call ipdbdebug#close()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_close)
-                   \ :<C-u>call ipdbdebug#close()<CR>
+                    \ :<C-u>call ipdbdebug#close()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_sigint)
-                   \ :<C-u>call ipdbdebug#sigint()<CR>
+                    \ :<C-u>call ipdbdebug#sigint()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_enter):
-                   \ :<C-u>call ipdbdebug#jobsend()<CR>
+                    \ :<C-u>call ipdbdebug#jobsend()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_help)
-                   \ :<C-u>call ipdbdebug#jobsend("help")<CR>
+                    \ :<C-u>call ipdbdebug#jobsend("help")<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_next)
-                   \ :<C-u>call ipdbdebug#jobsend("next")<CR>
+                    \ :<C-u>call ipdbdebug#jobsend("next")<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_step)
-                   \ :<C-u>call ipdbdebug#jobsend("step")<CR>
+                    \ :<C-u>call ipdbdebug#jobsend("step")<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_where)
-                   \ :<C-u>call ipdbdebug#jobsend("where")<CR>
+                    \ :<C-u>call ipdbdebug#jobsend("where")<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_return)
-                   \ :<C-u>call ipdbdebug#jobsend("return")<CR>
+                    \ :<C-u>call ipdbdebug#jobsend("return")<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_continue)
-                   \ :<C-u>call ipdbdebug#jobsend("continue")<CR>
+                    \ :<C-u>call ipdbdebug#jobsend("continue")<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_break)
-                   \ :<C-u>call ipdbdebug#jobsend("break ".line("."))<CR>
+                    \ :<C-u>call ipdbdebug#jobsend("break ".line("."))<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_until)
-                   \ :<C-u>call ipdbdebug#jobsend("until ".line("."))<CR>
+                    \ :<C-u>call ipdbdebug#jobsend("until ".line("."))<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_print)
-                   \ :<C-u>call ipdbdebug#jobsend("p ".expand("<cword>"))<CR>
+                    \ :<C-u>call ipdbdebug#jobsend("p ".expand("<cword>"))<CR>
 vno <buffer><silent> <Plug>(ipdbdebug_vprint)
-                   \ :<C-u>call ipdbdebug#vprint()<CR>
+                    \ :<C-u>call ipdbdebug#vprint()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_goto_debugwin)
-                   \ :<C-u>call ipdbdebug#goto_debugwin()<CR>
+                    \ :<C-u>call ipdbdebug#goto_debugwin()<CR>
 tno <buffer><silent> <Plug>(ipdbdebug_goto_scriptwin)
-                   \ <C-\><C-n>:<C-u>call ipdbdebug#goto_scriptwin()<CR>
+                    \ <C-\><C-n>:<C-u>call ipdbdebug#goto_scriptwin()<CR>
