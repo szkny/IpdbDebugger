@@ -199,6 +199,7 @@ fun! ipdbdebug#unmap() abort
 endf
 
 fun! ipdbdebug#map_show() abort
+    " mappingを確認するための関数
     if has_key(s:ipdb, 'maps') && g:ipdbdebug_map_enabled
         let l:map_options = has_key(s:ipdb, 'map_options') ? s:ipdb.map_options : ''
         for [l:mode, l:key, l:plugmap] in s:ipdb.maps
