@@ -259,23 +259,14 @@ endf
 
 
 " プラグインマッピング
-<<<<<<< HEAD
 tno <buffer><silent> <Plug>(ipdbdebug_close)
                     \ <C-\><C-n>:<C-u>call ipdbdebug#close()<CR>
-=======
->>>>>>> 480f5bed83c9bfc0aa9e65d30c26b059f3d8830a
 nno <buffer><silent> <Plug>(ipdbdebug_close)
                     \ :<C-u>call ipdbdebug#close()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_sigint)
-<<<<<<< HEAD
                     \ :<C-u>call ipdbdebug#sigint()<CR>
-nno <buffer><silent> <Plug>(ipdbdebug_enter):
-                    \ :<C-u>call ipdbdebug#jobsend()<CR>
-=======
-                   \ :<C-u>call ipdbdebug#sigint()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_enter)
-                   \ :<C-u>call ipdbdebug#jobsend()<CR>
->>>>>>> 480f5bed83c9bfc0aa9e65d30c26b059f3d8830a
+                    \ :<C-u>call ipdbdebug#jobsend()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_help)
                     \ :<C-u>call ipdbdebug#jobsend("help")<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_next)
@@ -295,12 +286,8 @@ nno <buffer><silent> <Plug>(ipdbdebug_until)
 nno <buffer><silent> <Plug>(ipdbdebug_print)
                     \ :<C-u>call ipdbdebug#jobsend("p ".expand("<cword>"))<CR>
 vno <buffer><silent> <Plug>(ipdbdebug_vprint)
-<<<<<<< HEAD
                     \ :<C-u>call ipdbdebug#vprint()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_goto_debugwin)
                     \ :<C-u>call ipdbdebug#goto_debugwin()<CR>
 tno <buffer><silent> <Plug>(ipdbdebug_goto_scriptwin)
                     \ <C-\><C-n>:<C-u>call ipdbdebug#goto_scriptwin()<CR>
-=======
-                   \ :<C-u>call ipdbdebug#vprint()<CR>
->>>>>>> 480f5bed83c9bfc0aa9e65d30c26b059f3d8830a
