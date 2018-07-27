@@ -161,6 +161,8 @@ fun! ipdbdebug#map() abort
                 let l:cmd = 'vmap'
             elseif l:mode ==? 't' || l:mode ==? 'terminal'
                 let l:cmd = 'tmap'
+            elseif len(l:mode) == 1
+                let l:cmd = l:mode.'map'
             else
                 continue
             endif
@@ -172,7 +174,8 @@ endf
 
 fun! ipdbdebug#unmap() abort
     " キーマッピングを解除する関数
-    if has_key(s:ipdb, 'maps') && has_key(s:ipdb, 'map_options')
+    if has_key(s:ipdb, 'maps')
+        let l:map_options = has_key(s:ipdb, 'map_options') ? s:ipdb.map_options : ''
         for [l:mode, l:map, l:func] in s:ipdb.maps
             if l:mode ==? 'n' || l:mode ==? 'normal'
                 let l:cmd = 'nunmap'
@@ -180,6 +183,8 @@ fun! ipdbdebug#unmap() abort
                 let l:cmd = 'vunmap'
             elseif l:mode ==? 't' || l:mode ==? 'terminal'
                 let l:cmd = 'tunmap'
+            elseif len(l:mode) == 1
+                let l:cmd = l:mode.'unmap'
             else
                 continue
             endif
@@ -189,6 +194,28 @@ fun! ipdbdebug#unmap() abort
             catch
                 continue
             endtry
+        endfor
+    endif
+endf
+
+fun! ipdbdebug#map_show() abort
+    if has_key(s:ipdb, 'maps') && g:ipdbdebug_map_enabled
+        let l:map_options = has_key(s:ipdb, 'map_options') ? s:ipdb.map_options : ''
+        for [l:mode, l:key, l:plugmap] in s:ipdb.maps
+            let l:cmd = ''
+            if l:mode ==? 'n' || l:mode ==? 'normal'
+                let l:cmd = 'nmap'
+            elseif l:mode ==? 'v' || l:mode ==? 'visual'
+                let l:cmd = 'vmap'
+            elseif l:mode ==? 't' || l:mode ==? 'terminal'
+                let l:cmd = 'tmap'
+            elseif len(l:mode) == 1
+                let l:cmd = l:mode.'map'
+            else
+                continue
+            endif
+            let l:cmd .= ' '.s:ipdb.map_options.' '.l:key.' '.l:plugmap
+            echo l:cmd
         endfor
     endif
 endf
