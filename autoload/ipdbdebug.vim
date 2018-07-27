@@ -116,13 +116,12 @@ endf
 
 fun! ipdbdebug#idle() abort
     " ipdb起動中に定期的に実行する関数
-    " (autocmdを利用している)
-    "       au CursorHold <buffer> call ipdbdebug#idle()
+    " (autocmdを利用している) au CursorHold <buffer> call ipdbdebug#idle()
     " ipdbdebug#open()関数で、
     "       setlocal updatetime=100
     " と記述して更新間隔を設定 (ミリ秒)
     if ipdbdebug#exist()
-        " echon '-- DEBUG --'
+        echon '-- DEBUG --'
     else
         call ipdbdebug#close()
     endif
@@ -153,8 +152,8 @@ let s:ipdb.maps = [
 let s:ipdb.map_options = '<silent> <buffer> <nowait>'
 fun! ipdbdebug#map() abort
     " キーマッピングを行う関数
-    if has_key(s:ipdb, 'maps') && has_key(s:ipdb, 'map_options')
-                             \ && g:ipdbdebug_map_enabled
+    if has_key(s:ipdb, 'maps') && g:ipdbdebug_map_enabled
+        let l:map_options = has_key(s:ipdb, 'map_options') ? s:ipdb.map_options : ''
         for [l:mode, l:key, l:plugmap] in s:ipdb.maps
             let l:cmd = ''
             if l:mode ==? 'n' || l:mode ==? 'normal'
