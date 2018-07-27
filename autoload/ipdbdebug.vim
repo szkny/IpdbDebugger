@@ -128,7 +128,6 @@ fun! ipdbdebug#idle() abort
 endf
 
 
-" let g:ipdbdebug_map_enabled = get(g:, 'ipdbdebug_map_enabled', 1)
 let s:ipdb.maps = [
     \['normal',   '<ESC>',      '<Plug>(ipdbdebug_close)'],
     \['normal',   '<C-[>',      '<Plug>(ipdbdebug_close)'],
