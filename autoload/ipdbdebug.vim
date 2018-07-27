@@ -72,6 +72,7 @@ fun! ipdbdebug#open() abort
             let s:ipdb.jobid = b:terminal_job_id
             let s:ipdb.debug_winid = win_getid()
             call win_gotoid(s:ipdb.script_winid)
+            call ipdbdebug#commands()
         endif
     else
         echon 'ipdb: [error] invalid file type. this is "' . &filetype. '".'
@@ -99,6 +100,7 @@ fun! ipdbdebug#close()
     if has_key(s:ipdb, 'jobid')
         unlet s:ipdb.jobid
     endif
+    call ipdbdebug#commands()
 endf
 
 fun! ipdbdebug#exist() abort
@@ -317,3 +319,33 @@ nno <buffer><silent> <Plug>(ipdbdebug_goto_debugwin)
                     \ :<C-u>call ipdbdebug#goto_debugwin()<CR>
 tno <buffer><silent> <Plug>(ipdbdebug_goto_scriptwin)
                     \ <C-\><C-n>:<C-u>call ipdbdebug#goto_scriptwin()<CR>
+
+" コマンド
+fun! ipdbdebug#commands() abort
+    if ipdbdebug#exist()
+        command! IpdbDebugEnter     call ipdbdebug#enter()
+        command! IpdbDebugHelp      call ipdbdebug#jobsend('help')
+        command! IpdbDebugNext      call ipdbdebug#jobsend('next')
+        command! IpdbDebugStep      call ipdbdebug#jobsend('step')
+        command! IpdbDebugWhere     call ipdbdebug#jobsend('where')
+        command! IpdbDebugReturn    call ipdbdebug#jobsend('return')
+        command! IpdbDebugContinue  call ipdbdebug#jobsend('continue')
+        command! IpdbDebugBreak     call ipdbdebug#jobsend('break '.line('.'))
+        command! IpdbDebugUntil     call ipdbdebug#jobsend('until '.line('.'))
+        command! IpdbDebugPrint     call ipdbdebug#jobsend('p '.expand('<cword>'))
+    else
+        try
+            delcommand IpdbDebugEnter
+            delcommand IpdbDebugHelp
+            delcommand IpdbDebugNext
+            delcommand IpdbDebugStep
+            delcommand IpdbDebugWhere
+            delcommand IpdbDebugReturn
+            delcommand IpdbDebugContinue
+            delcommand IpdbDebugBreak
+            delcommand IpdbDebugUntil
+            delcommand IpdbDebugPrint
+        catch
+        endtry
+    endif
+endf
