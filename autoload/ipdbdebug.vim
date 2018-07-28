@@ -11,6 +11,7 @@ scriptencoding utf-8
 "   - PUDB風にする
 "       - ブレークポイントのハイライト
 "       - ステップ実行時のカーソル自動移動
+"       - 行のハイライト
 "       - スタックトレースの表示
 "       - airlineのモードカラー連携
 
@@ -75,7 +76,7 @@ fun! ipdbdebug#open() abort
             call ipdbdebug#commands()
         endif
     else
-        echon 'ipdb: [error] invalid file type. this is "' . &filetype. '".'
+        echon 'ipdb: [error] invalid file type. this is "'.&filetype.'".'
     endif
 endf
 
