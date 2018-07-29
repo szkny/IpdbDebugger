@@ -90,6 +90,10 @@ fun! ipdbdebug#close()
         let &updatetime=s:ipdb.save_updatetime
         setlocal modifiable
         call ipdbdebug#unmap()
+        if has_key(s:ipdb, 'breakpoint')
+            unlet s:ipdb.breakpoint
+            call clearmatches()
+        endif
     endif
     aug ipdb_auto_command
         au!
@@ -243,6 +247,32 @@ fun! ipdbdebug#jobsend(...) abort
     endif
 endf
 
+fun! ipdbdebug#break() abort
+    if ipdbdebug#exist()
+        let l:current_line = line('.')
+        let l:bp_already_exist_flag = 0
+        if has_key(s:ipdb, 'breakpoint')
+            for l:i in s:ipdb.breakpoint
+                if l:i == l:current_line
+                    let l:bp_already_exist_flag = 1
+                endif
+            endfor
+            if !l:bp_already_exist_flag
+                let s:ipdb.breakpoint += [l:current_line]
+            endif
+        else
+            let s:ipdb.breakpoint = [l:current_line]
+        endif
+        if l:bp_already_exist_flag
+            call ipdbdebug#jobsend('p "line '.l:current_line.' already set a breakpoint."')
+            return
+        else
+            call matchaddpos('IpdbDebugger', [l:current_line])
+            call ipdbdebug#jobsend('break '.l:current_line)
+        endif
+    endif
+endf
+
 fun! ipdbdebug#sigint() abort
     " ipdbにSIGINT(<C-c>)を送る関数
     if ipdbdebug#exist()
@@ -309,7 +339,7 @@ nno <buffer><silent> <Plug>(ipdbdebug_return)
 nno <buffer><silent> <Plug>(ipdbdebug_continue)
                     \ :<C-u>call ipdbdebug#jobsend("continue")<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_break)
-                    \ :<C-u>call ipdbdebug#jobsend("break ".line("."))<CR>
+                    \ :<C-u>call ipdbdebug#break()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_until)
                     \ :<C-u>call ipdbdebug#jobsend("until ".line("."))<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_print)
@@ -350,3 +380,5 @@ fun! ipdbdebug#commands() abort
         endtry
     endif
 endf
+
+highlight IpdbDebugger gui=bold guifg=#00ff00 guibg=#0000ff
