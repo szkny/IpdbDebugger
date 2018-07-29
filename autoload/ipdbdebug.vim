@@ -251,10 +251,16 @@ fun! ipdbdebug#break() abort
     if ipdbdebug#exist()
         let l:current_line = line('.')
         let l:bp_already_exist_flag = 0
+        if getline('.') ==# ''
+            return
+        endif
         if has_key(s:ipdb, 'breakpoint')
             for l:i in s:ipdb.breakpoint
                 if l:i == l:current_line
                     let l:bp_already_exist_flag = 1
+                endif
+                if l:bp_already_exist_flag
+                    break
                 endif
             endfor
             if !l:bp_already_exist_flag
@@ -266,9 +272,19 @@ fun! ipdbdebug#break() abort
         if l:bp_already_exist_flag
             call ipdbdebug#jobsend('p "line '.l:current_line.' already set a breakpoint."')
             return
-        else
-            call matchaddpos('IpdbDebugger', [l:current_line])
-            call ipdbdebug#jobsend('break '.l:current_line)
+        endif
+        call matchaddpos('IpdbDebugger', s:ipdb.breakpoint)
+        call ipdbdebug#jobsend('break '.s:ipdb.breakpoint[-1])
+    endif
+endf
+
+fun! ipdbdebug#clear() abort
+    if ipdbdebug#exist()
+        if has_key(s:ipdb, 'breakpoint')
+            call clearmatches()
+            unlet s:ipdb.breakpoint
+            call ipdbdebug#jobsend('clear')
+            call ipdbdebug#jobsend('yes')
         endif
     endif
 endf
@@ -340,6 +356,8 @@ nno <buffer><silent> <Plug>(ipdbdebug_continue)
                     \ :<C-u>call ipdbdebug#jobsend("continue")<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_break)
                     \ :<C-u>call ipdbdebug#break()<CR>
+nno <buffer><silent> <Plug>(ipdbdebug_clear)
+                    \ :<C-u>call ipdbdebug#clear()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_until)
                     \ :<C-u>call ipdbdebug#jobsend("until ".line("."))<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_print)
@@ -354,14 +372,16 @@ tno <buffer><silent> <Plug>(ipdbdebug_goto_scriptwin)
 " コマンド
 fun! ipdbdebug#commands() abort
     if ipdbdebug#exist()
+        command! IpdbDebugMaps      call ipdbdebug#map_show()
         command! IpdbDebugEnter     call ipdbdebug#enter()
         command! IpdbDebugHelp      call ipdbdebug#jobsend('help')
         command! IpdbDebugNext      call ipdbdebug#jobsend('next')
         command! IpdbDebugStep      call ipdbdebug#jobsend('step')
         command! IpdbDebugWhere     call ipdbdebug#jobsend('where')
         command! IpdbDebugReturn    call ipdbdebug#jobsend('return')
+        command! IpdbDebugBreak     call ipdbdebug#break()
+        command! IpdbDebugClear     call ipdbdebug#clear()
         command! IpdbDebugContinue  call ipdbdebug#jobsend('continue')
-        command! IpdbDebugBreak     call ipdbdebug#jobsend('break '.line('.'))
         command! IpdbDebugUntil     call ipdbdebug#jobsend('until '.line('.'))
         command! IpdbDebugPrint     call ipdbdebug#jobsend('p '.expand('<cword>'))
     else
