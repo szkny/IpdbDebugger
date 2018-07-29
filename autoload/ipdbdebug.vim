@@ -150,6 +150,7 @@ let s:ipdb.maps = [
     \['normal',   '<leader>u',  '<Plug>(ipdbdebug_until)'],
     \['normal',   '<leader>p',  '<Plug>(ipdbdebug_print)'],
     \['visual',   '<leader>p',  '<Plug>(ipdbdebug_vprint)'],
+    \['normal',   '<leader>d',  '<Plug>(ipdbdebug_display)'],
     \['normal',   'i',          '<Plug>(ipdbdebug_goto_debugwin)'],
     \['terminal', '<ESC>',      '<C-\><C-n>:<C-u>call ipdbdebug#goto_scriptwin()<CR>'],
     \['terminal', '<C-d>',      '<C-\><C-n>:<C-u>call ipdbdebug#close()<CR>'],
@@ -305,7 +306,7 @@ fun! ipdbdebug#vprint() abort
         else
             let l:text = expand('<cword>')
         endif
-        call ipdbdebug#jobsend('p '.l:text)
+        call ipdbdebug#jobsend('pp '.l:text)
     endif
 endf
 
@@ -360,9 +361,11 @@ nno <buffer><silent> <Plug>(ipdbdebug_clear)
 nno <buffer><silent> <Plug>(ipdbdebug_until)
                     \ :<C-u>call ipdbdebug#jobsend("until ".line("."))<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_print)
-                    \ :<C-u>call ipdbdebug#jobsend("p ".expand("<cword>"))<CR>
+                    \ :<C-u>call ipdbdebug#jobsend("pp ".expand("<cword>"))<CR>
 vno <buffer><silent> <Plug>(ipdbdebug_vprint)
                     \ :<C-u>call ipdbdebug#vprint()<CR>
+nno <buffer><silent> <Plug>(ipdbdebug_display)
+                    \ :<C-u>call ipdbdebug#jobsend("display ".expand("<cword>"))<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_goto_debugwin)
                     \ :<C-u>call ipdbdebug#goto_debugwin()<CR>
 tno <buffer><silent> <Plug>(ipdbdebug_goto_scriptwin)
@@ -371,30 +374,35 @@ tno <buffer><silent> <Plug>(ipdbdebug_goto_scriptwin)
 " コマンド
 fun! ipdbdebug#commands() abort
     if ipdbdebug#exist()
-        command! IpdbDebugMaps      call ipdbdebug#map_show()
-        command! IpdbDebugEnter     call ipdbdebug#enter()
-        command! IpdbDebugHelp      call ipdbdebug#jobsend('help')
-        command! IpdbDebugNext      call ipdbdebug#jobsend('next')
-        command! IpdbDebugStep      call ipdbdebug#jobsend('step')
-        command! IpdbDebugWhere     call ipdbdebug#jobsend('where')
-        command! IpdbDebugReturn    call ipdbdebug#jobsend('return')
-        command! IpdbDebugBreak     call ipdbdebug#break()
-        command! IpdbDebugClear     call ipdbdebug#clear()
-        command! IpdbDebugContinue  call ipdbdebug#jobsend('continue')
-        command! IpdbDebugUntil     call ipdbdebug#jobsend('until '.line('.'))
-        command! IpdbDebugPrint     call ipdbdebug#jobsend('p '.expand('<cword>'))
+        command!        IpdbDebugMaps      call ipdbdebug#map_show()
+        command!        IpdbDebugEnter     call ipdbdebug#enter()
+        command!        IpdbDebugHelp      call ipdbdebug#jobsend('help')
+        command!        IpdbDebugNext      call ipdbdebug#jobsend('next')
+        command!        IpdbDebugStep      call ipdbdebug#jobsend('step')
+        command!        IpdbDebugWhere     call ipdbdebug#jobsend('where')
+        command!        IpdbDebugReturn    call ipdbdebug#jobsend('return')
+        command!        IpdbDebugBreak     call ipdbdebug#break()
+        command!        IpdbDebugClear     call ipdbdebug#clear()
+        command!        IpdbDebugContinue  call ipdbdebug#jobsend('continue')
+        command!        IpdbDebugUntil     call ipdbdebug#jobsend('until '.line('.'))
+        command!        IpdbDebugPrint     call ipdbdebug#jobsend('pp '.expand('<cword>'))
+        command! -range IpdbDebugPrint     call ipdbdebug#vprint()
+        command!        IpdbDebugDisplay   call ipdbdebug#jobsend('display '.expand('<cword>'))
     else
         try
+            delcommand IpdbDebugMaps
             delcommand IpdbDebugEnter
             delcommand IpdbDebugHelp
             delcommand IpdbDebugNext
             delcommand IpdbDebugStep
             delcommand IpdbDebugWhere
             delcommand IpdbDebugReturn
-            delcommand IpdbDebugContinue
             delcommand IpdbDebugBreak
+            delcommand IpdbDebugClear
+            delcommand IpdbDebugContinue
             delcommand IpdbDebugUntil
             delcommand IpdbDebugPrint
+            delcommand IpdbDebugDisplay
         catch
         endtry
     endif
