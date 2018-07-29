@@ -250,8 +250,13 @@ endf
 fun! ipdbdebug#break() abort
     if ipdbdebug#exist()
         let l:current_line = line('.')
+        let l:line_str = join(split(getline('.'), '\ '))
         let l:bp_already_exist_flag = 0
-        if getline('.') ==# ''
+        if l:line_str ==# ''
+           \|| l:line_str[0] ==# '#'
+           \|| l:line_str[:2] ==# '"""'
+           \|| l:line_str[:2] ==# "'''"
+            call ipdbdebug#jobsend('p "*** blank or comment"')
             return
         endif
         if has_key(s:ipdb, 'breakpoint')
@@ -264,16 +269,21 @@ fun! ipdbdebug#break() abort
                 endif
             endfor
             if !l:bp_already_exist_flag
-                let s:ipdb.breakpoint += [l:current_line]
+                if len(s:ipdb.breakpoint) < 8
+                    let s:ipdb.breakpoint += [l:current_line]
+                else
+                    call ipdbdebug#jobsend('p "too many breakpoints exist"')
+                    return
+                endif
             endif
         else
             let s:ipdb.breakpoint = [l:current_line]
         endif
         if l:bp_already_exist_flag
-            call ipdbdebug#jobsend('p "line '.l:current_line.' already set a breakpoint."')
+            call ipdbdebug#jobsend('p "line '.l:current_line.' already set a breakpoint"')
             return
         endif
-        call matchaddpos('IpdbDebugger', s:ipdb.breakpoint)
+        call matchaddpos('IpdbDebugBreakPoint', s:ipdb.breakpoint)
         call ipdbdebug#jobsend('break '.s:ipdb.breakpoint[-1])
     endif
 endf
@@ -408,4 +418,4 @@ fun! ipdbdebug#commands() abort
     endif
 endf
 
-highlight IpdbDebugger gui=bold guifg=#00ff00 guibg=#0000ff
+highlight IpdbDebugBreakPoint gui=bold guifg=#00ff00 guibg=#0000ff
