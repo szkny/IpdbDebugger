@@ -9,7 +9,6 @@ scriptencoding utf-8
 " TODO:
 "   - ipdbdebug#map/unmap()のデバッグ
 "   - PUDB風にする
-"       - ブレークポイントのハイライト
 "       - ステップ実行時のカーソル自動移動
 "       - 行のハイライト
 "       - スタックトレースの表示
