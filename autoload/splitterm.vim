@@ -63,14 +63,14 @@ command! -complete=shellcmd -nargs=* SplitTerm call SplitTerm(<f-args>)
 
 
 fun! s:SetNewBufName(name) abort
-    " 新規バッファのバッファ名(例: '1 bash')を設定する関数
+    " 新規バッファのバッファ名(例: '1_bash')を設定する関数
     "      NewTermとSplitTermで利用している
     let l:num = 1
-    let l:name = split(a:name,' ')[0]
-    while bufexists(l:num.' '.l:name)
+    let l:name = split(a:name,'_')[0]
+    while bufexists(l:num.'_'.l:name)
         let l:num += 1
     endwhile
-    exe 'file '.l:num.' '.l:name
+    exe 'file '.l:num.'_'.l:name
 endf
 
 
