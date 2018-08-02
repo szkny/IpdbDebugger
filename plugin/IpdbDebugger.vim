@@ -9,8 +9,8 @@ if !has('nvim')
     finish
 endif
 
-command! IpdbDebug          call ipdbdebug#open()
-command! IpdbDebugClose     call ipdbdebug#close()
-command! IpdbDebugToggle    call ipdbdebug#toggle()
+command! IpdbOpen      call ipdbdebug#open()
+command! IpdbClose     call ipdbdebug#close()
+command! IpdbToggle    call ipdbdebug#toggle()
 
 let g:ipdbdebug_map_enabled = get(g:, 'ipdbdebug_map_enabled', 1)
