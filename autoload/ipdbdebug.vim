@@ -420,4 +420,4 @@ fun! ipdbdebug#commands() abort
     endif
 endf
 
-highlight IpdbDebugBreakPoint gui=undercurl guifg=#00ff00 guibg=#0000ff
+highlight IpdbDebugBreakPoint gui=bold guifg=#00ff00 guibg=#0000ff
