@@ -21,11 +21,11 @@ fun! splitterm#open(...) abort
         let l:current_dir = getcwd()
     endif
     " create split window
-    let l:width = s:Vsplitwidth()
+    let l:width = s:vsplitwidth()
     if l:width
         let l:split = l:width.'vnew'
     else
-        let l:height = s:Splitheight()
+        let l:height = s:splitheight()
         let l:split = l:height ? l:height.'new' : 'new'
     endif
     silent exe l:split
@@ -40,9 +40,9 @@ fun! splitterm#open(...) abort
     silent exe l:cmd2
     " change buffer name
     if a:0 == 0
-        silent call s:SetNewBufName('bash')
+        silent call s:setnewbufname('bash')
     elseif a:0 > 0
-        silent call s:SetNewBufName(a:1)
+        silent call s:setnewbufname(a:1)
     endif
     " set local settings
     setlocal nonumber
@@ -62,11 +62,11 @@ endf
 command! -complete=shellcmd -nargs=* SplitTerm call SplitTerm(<f-args>)
 
 
-fun! s:SetNewBufName(name) abort
+fun! s:setnewbufname(name) abort
     " 新規バッファのバッファ名(例: '1:bash')を設定する関数
     "      NewTermとSplitTermで利用している
     let l:num = 1
-    let l:name = split(a:name,':')[0]
+    let l:name = split(a:name,' ')[0]
     while bufexists(l:num.':'.l:name)
         let l:num += 1
     endwhile
@@ -74,7 +74,7 @@ fun! s:SetNewBufName(name) abort
 endf
 
 
-fun! s:Splitheight() abort
+fun! s:splitheight() abort
     " 新規分割ウィンドウの高さを決める関数
     "      SplitTermで利用している
     let l:min_winheight = 10
@@ -87,7 +87,7 @@ fun! s:Splitheight() abort
 endf
 
 
-fun! s:Vsplitwidth() abort
+fun! s:vsplitwidth() abort
     " 新規分割ウィンドウの幅を決める関数
     "      SplitTermで利用している
     let l:min_winwidth = 60
