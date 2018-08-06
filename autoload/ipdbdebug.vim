@@ -340,7 +340,7 @@ fun! ipdbdebug#goto_debugwin() abort
 endf
 
 fun! ipdbdebug#goto_scriptwin() abort
-    " idpbのスクリプトウィンドウにいどうする関数
+    " idpbのスクリプトウィンドウに移動する関数
     if ipdbdebug#exist() && has_key(s:ipdb, 'script_winid')
         call win_gotoid(s:ipdb.script_winid)
     endif
