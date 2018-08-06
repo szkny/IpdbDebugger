@@ -258,7 +258,7 @@ fun! ipdbdebug#break() abort
            \|| l:line_str[0] ==# '#'
            \|| l:line_str[:2] ==# '"""'
            \|| l:line_str[:2] ==# "'''"
-            call ipdbdebug#jobsend('*** blank or comment"')
+            call ipdbdebug#jobsend('"*** blank or comment"')
             return
         endif
         if has_key(s:ipdb, 'breakpoint')
