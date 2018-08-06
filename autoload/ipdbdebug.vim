@@ -402,6 +402,7 @@ fun! ipdbdebug#commands() abort
         command!          IpdbDisplay   call ipdbdebug#jobsend('display '.expand('<cword>'))
     else
         try
+            delcommand IpdbJobsend
             delcommand IpdbMaps
             delcommand IpdbEnter
             delcommand IpdbHelp
