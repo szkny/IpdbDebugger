@@ -152,11 +152,12 @@ let s:ipdb.maps = [
     \['visual',   '<leader>p',  '<Plug>(ipdbdebug_vprint)'],
     \['normal',   '<leader>w',  '<Plug>(ipdbdebug_whos)'],
     \['normal',   '<leader>d',  '<Plug>(ipdbdebug_display)'],
-    \['normal',   'i',          '<Plug>(ipdbdebug_goto_debugwin)'],
-    \['terminal', '<ESC>',      '<C-\><C-n>:<C-u>call ipdbdebug#goto_scriptwin()<CR>'],
     \['terminal', '<C-d>',      '<C-\><C-n>:<C-u>call ipdbdebug#close()<CR>'],
 \]   " mode       {lhs}         {rhs}
+    " \['normal',   'i',          '<Plug>(ipdbdebug_goto_debugwin)'],
+    " \['terminal', '<ESC>',      '<C-\><C-n>:<C-u>call ipdbdebug#goto_scriptwin()<CR>'],
 let s:ipdb.map_options = '<silent> <buffer> <nowait>'
+
 fun! ipdbdebug#map() abort
     " キーマッピングを行う関数
     if has_key(s:ipdb, 'maps') && g:ipdbdebug_map_enabled
