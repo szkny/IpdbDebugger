@@ -144,13 +144,13 @@ let s:ipdb.maps = [
     \['normal',   '<leader>h',  '<Plug>(ipdbdebug_help)'],
     \['normal',   '<leader>n',  '<Plug>(ipdbdebug_next)'],
     \['normal',   '<leader>s',  '<Plug>(ipdbdebug_step)'],
-    \['normal',   '<leader>w',  '<Plug>(ipdbdebug_where)'],
     \['normal',   '<leader>r',  '<Plug>(ipdbdebug_return)'],
     \['normal',   '<leader>c',  '<Plug>(ipdbdebug_continue)'],
     \['normal',   '<leader>b',  '<Plug>(ipdbdebug_break)'],
     \['normal',   '<leader>u',  '<Plug>(ipdbdebug_until)'],
     \['normal',   '<leader>p',  '<Plug>(ipdbdebug_print)'],
     \['visual',   '<leader>p',  '<Plug>(ipdbdebug_vprint)'],
+    \['normal',   '<leader>w',  '<Plug>(ipdbdebug_whos)'],
     \['normal',   '<leader>d',  '<Plug>(ipdbdebug_display)'],
     \['normal',   'i',          '<Plug>(ipdbdebug_goto_debugwin)'],
     \['terminal', '<ESC>',      '<C-\><C-n>:<C-u>call ipdbdebug#goto_scriptwin()<CR>'],
@@ -321,6 +321,15 @@ fun! ipdbdebug#vprint() abort
     endif
 endf
 
+fun! ipdbdebug#whos() abort
+    " ipythonのマジックコマンド(%whos)を実行する関数
+    if ipdbdebug#exist()
+        let l:cmd = 'from IPython import get_ipython;'
+                  \.'get_ipython().find_line_magic("whos")()'
+        call ipdbdebug#jobsend(l:cmd)
+    endif
+endf
+
 fun! ipdbdebug#goto_debugwin() abort
     " ipdbのデバッグウィンドウに移動する関数
     if ipdbdebug#exist() && has_key(s:ipdb, 'debug_winid')
@@ -375,6 +384,8 @@ nno <buffer><silent> <Plug>(ipdbdebug_print)
                     \ :<C-u>call ipdbdebug#jobsend("pp ".expand("<cword>"))<CR>
 vno <buffer><silent> <Plug>(ipdbdebug_vprint)
                     \ :<C-u>call ipdbdebug#vprint()<CR>
+nno <buffer><silent> <Plug>(ipdbdebug_whos)
+                    \ :<C-u>call ipdbdebug#whos()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_display)
                     \ :<C-u>call ipdbdebug#jobsend("display ".expand("<cword>"))<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_goto_debugwin)
@@ -387,7 +398,7 @@ fun! ipdbdebug#commands() abort
     if ipdbdebug#exist()
         command! -nargs=* IpdbJobsend   call ipdbdebug#jobsend(<f-args>)
         command!          IpdbMaps      call ipdbdebug#map_show()
-        command!          IpdbEnter     call ipdbdebug#enter()
+        command!          IpdbEnter     call ipdbdebug#jobsend()
         command!          IpdbHelp      call ipdbdebug#jobsend('help')
         command!          IpdbNext      call ipdbdebug#jobsend('next')
         command!          IpdbStep      call ipdbdebug#jobsend('step')
@@ -399,6 +410,7 @@ fun! ipdbdebug#commands() abort
         command!          IpdbUntil     call ipdbdebug#jobsend('until '.line('.'))
         command!          IpdbPrint     call ipdbdebug#jobsend('pp '.expand('<cword>'))
         command! -range   IpdbPrint     call ipdbdebug#vprint()
+        command!          IpdbWhos      call ipdbdebug#whos()
         command!          IpdbDisplay   call ipdbdebug#jobsend('display '.expand('<cword>'))
     else
         try
@@ -415,6 +427,7 @@ fun! ipdbdebug#commands() abort
             delcommand IpdbContinue
             delcommand IpdbUntil
             delcommand IpdbPrint
+            delcommand IpdbWhos
             delcommand IpdbDisplay
         catch
         endtry
