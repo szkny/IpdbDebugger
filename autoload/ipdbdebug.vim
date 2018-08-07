@@ -242,7 +242,7 @@ fun! ipdbdebug#jobsend(...) abort
             endfor
         endif
         try
-            call jobsend(s:ipdb.jobid, l:command."\<CR>")
+            call jobsend(s:ipdb.jobid, "\<C-u>".l:command."\<CR>")
         catch
             call ipdbdebug#close()
         endtry
