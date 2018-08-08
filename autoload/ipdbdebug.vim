@@ -7,13 +7,14 @@ scriptencoding utf-8
 
 "" ipdbによるPythonデバッガプラグイン
 " TODO:
+"   - ファイルを跨いだ step-in、break point 機能の実装
+"   - printのデフォルトは<cword>ではなく左辺値にする
 "   - ipdbdebug#map/unmap()のデバッグ
 "   - PUDBもしくはllvm.nvim風にする
 "       - ステップ実行時のカーソル自動移動
 "       - 行のハイライト
 "       - スタックトレースの表示
 "       - airlineのモードカラー連携
-"   - printのデフォルトは<cword>ではなく左辺値にする
 
 " include guard
 if !has('nvim') || exists('g:ipdbdebugger_ipdbdebug_loaded')
