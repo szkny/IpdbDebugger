@@ -63,7 +63,7 @@ fun! ipdbdebug#open() abort
             let s:ipdb.jobid = b:terminal_job_id
             let s:ipdb.debug_winid = win_getid()
             call win_gotoid(s:ipdb.script_winid)
-            call ipdbdebug#commands()
+            call s:define_command()
         endif
     else
         echon 'ipdb: [error] invalid file type. this is "'.&filetype.'".'
@@ -133,7 +133,7 @@ fun! ipdbdebug#close()
     if has_key(s:ipdb, 'jobid')
         unlet s:ipdb.jobid
     endif
-    call ipdbdebug#commands()
+    call s:define_command()
 endf
 
 fun! ipdbdebug#exist() abort
@@ -156,7 +156,7 @@ fun! ipdbdebug#idle() abort
     "       setlocal updatetime=100
     " と記述して更新間隔を設定 (ミリ秒)
     if ipdbdebug#exist()
-        echon '-- DEBUG --'
+        " echon '-- DEBUG --'
     else
         call ipdbdebug#close()
     endif
@@ -253,7 +253,8 @@ endf
 
 fun! ipdbdebug#map_show() abort
     " mappingを確認するための関数
-    if has_key(s:ipdb, 'maps') && g:ipdbdebug_map_enabled
+    " if has_key(s:ipdb, 'maps') && g:ipdbdebug_map_enabled
+        let l:all_maps = []
         let l:map_options = has_key(s:ipdb, 'map_options') ? s:ipdb.map_options : ''
         for [l:mode, l:key, l:plugmap] in s:ipdb.maps
             let l:cmd = ''
@@ -269,23 +270,19 @@ fun! ipdbdebug#map_show() abort
                 continue
             endif
             let l:cmd .= ' '.s:ipdb.map_options.' '.l:key.' '.l:plugmap
+            " let l:all_maps += [l:cmd]
             echo l:cmd
         endfor
-    endif
+        " echo 'pp ['.join(l:all_maps,',').']'
+        " call ipdbdebug#jobsend('pp "['.join(l:all_maps,',').']"')
+    " endif
 endf
 
 fun! ipdbdebug#jobsend(...) abort
     " ipdbにコマンドを送る関数
-    " USAGE:
-    "    call ipdbdebug#jobsend('ipdbのコマンド')
+    " USAGE: call ipdbdebug#jobsend('ipdbのコマンド')
     if ipdbdebug#exist()
-        let l:command = ''
-        if a:0 > 0
-            let l:command = a:1
-            for l:arg in a:000[1:]
-                let l:command .= ' ' . l:arg
-            endfor
-        endif
+        let l:command = join(a:000)
         try
             call jobsend(s:ipdb.jobid, "\<C-u>".l:command."\<CR>")
         catch
@@ -355,6 +352,7 @@ fun! s:show_highlight() abort
     endfor
     call matchaddpos('IpdbDebugBreakPoint', l:highlight_line_list)
 endf
+highlight IpdbDebugBreakPoint gui=bold guifg=#00ff00 guibg=#0000ff
 
 fun! ipdbdebug#clear() abort
     " ブレークポイントを全てクリアする関数
@@ -461,44 +459,44 @@ nno <buffer><silent> <Plug>(ipdbdebug_goto_debugwin)
 tno <buffer><silent> <Plug>(ipdbdebug_goto_scriptwin)
             \ <C-\><C-n>:<C-u>call ipdbdebug#goto_scriptwin()<CR>
 
-" コマンド
-fun! ipdbdebug#commands() abort
-    if ipdbdebug#exist()
-        command! -nargs=* IpdbJobsend   call ipdbdebug#jobsend(<f-args>)
-        command!          IpdbMaps      call ipdbdebug#map_show()
-        command!          IpdbHelp      call ipdbdebug#jobsend('help')
-        command!          IpdbNext      call ipdbdebug#jobsend('next')
-        command!          IpdbStep      call ipdbdebug#jobsend('step')
-        command!          IpdbWhere     call ipdbdebug#jobsend('where')
-        command!          IpdbReturn    call ipdbdebug#jobsend('return')
-        command!          IpdbBreak     call ipdbdebug#break()
-        command!          IpdbClear     call ipdbdebug#clear()
-        command!          IpdbContinue  call ipdbdebug#jobsend('continue')
-        command!          IpdbUntil     call ipdbdebug#jobsend('until '.line('.'))
-        command!          IpdbPrint     call ipdbdebug#jobsend('pp '.expand('<cword>'))
-        command! -range   IpdbPrint     call ipdbdebug#vprint()
-        command!          IpdbWhos      call ipdbdebug#whos()
-        command!          IpdbDisplay   call ipdbdebug#jobsend('display '.expand('<cword>'))
-    else
-        try
-            delcommand IpdbJobsend
-            delcommand IpdbMaps
-            delcommand IpdbEnter
-            delcommand IpdbHelp
-            delcommand IpdbNext
-            delcommand IpdbStep
-            delcommand IpdbWhere
-            delcommand IpdbReturn
-            delcommand IpdbBreak
-            delcommand IpdbClear
-            delcommand IpdbContinue
-            delcommand IpdbUntil
-            delcommand IpdbPrint
-            delcommand IpdbWhos
-            delcommand IpdbDisplay
-        catch
-        endtry
+" コマンド定義
+fun! s:define_command() abort
+    if g:ipdbdebug_command_enabled
+        if ipdbdebug#exist()
+            command! -nargs=* IpdbJobsend   call ipdbdebug#jobsend(<f-args>)
+            command!          IpdbMaps      call ipdbdebug#map_show()
+            command!          IpdbHelp      call ipdbdebug#jobsend('help')
+            command!          IpdbNext      call ipdbdebug#jobsend('next')
+            command!          IpdbStep      call ipdbdebug#jobsend('step')
+            command!          IpdbWhere     call ipdbdebug#jobsend('where')
+            command!          IpdbReturn    call ipdbdebug#jobsend('return')
+            command!          IpdbBreak     call ipdbdebug#break()
+            command!          IpdbClear     call ipdbdebug#clear()
+            command!          IpdbContinue  call ipdbdebug#jobsend('continue')
+            command!          IpdbUntil     call ipdbdebug#jobsend('until '.line('.'))
+            command!          IpdbPrint     call ipdbdebug#jobsend('pp '.expand('<cword>'))
+            command! -range   IpdbPrint     call ipdbdebug#vprint()
+            command!          IpdbWhos      call ipdbdebug#whos()
+            command!          IpdbDisplay   call ipdbdebug#jobsend('display '.expand('<cword>'))
+        else
+            try
+                delcommand IpdbJobsend
+                delcommand IpdbMaps
+                delcommand IpdbEnter
+                delcommand IpdbHelp
+                delcommand IpdbNext
+                delcommand IpdbStep
+                delcommand IpdbWhere
+                delcommand IpdbReturn
+                delcommand IpdbBreak
+                delcommand IpdbClear
+                delcommand IpdbContinue
+                delcommand IpdbUntil
+                delcommand IpdbPrint
+                delcommand IpdbWhos
+                delcommand IpdbDisplay
+            catch
+            endtry
+        endif
     endif
 endf
-
-highlight IpdbDebugBreakPoint gui=bold guifg=#00ff00 guibg=#0000ff
