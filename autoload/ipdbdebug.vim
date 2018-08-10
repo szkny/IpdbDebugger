@@ -68,9 +68,9 @@ fun! ipdbdebug#open() abort
             aug END
             let s:ipdb.script_winid = win_getid()
             " デバッグウィンドウを開く
-            silent call splitterm#open('ipdb3', expand('%'))
+            silent call splitterm#open('ipdb3', expand('%:p'))
             exe 'normal G'
-            call ipdbdebug#map()
+            call s:map_each()
             let s:ipdb.jobid = b:terminal_job_id
             let s:ipdb.debug_winid = win_getid()
             call win_gotoid(s:ipdb.script_winid)
@@ -90,7 +90,7 @@ fun! ipdbdebug#close()
         let &cpoptions = s:ipdb.save_cpo
         let &updatetime=s:ipdb.save_updatetime
         setlocal modifiable
-        call ipdbdebug#unmap()
+        " call ipdbdebug#unmap()
         if has_key(s:ipdb, 'breakpoint')
             unlet s:ipdb.breakpoint
             call clearmatches()
@@ -160,6 +160,22 @@ let s:ipdb.maps = [
 let s:ipdb.map_options = '<silent> <buffer> <nowait>'
 
 fun! ipdbdebug#map() abort
+    " 現在開いている全てのPythonスクリプトのバッファに対してマッピングを設定
+    if g:ipdbdebug_map_enabled
+        let l:current_bufnr = bufnr('%')
+        for l:i in range(0, 10)
+            if &filetype ==# 'python'
+                call s:map_each()
+            endif
+            silent exe 'bnext'
+            if bufnr('%') == l:current_bufnr
+                break
+            endif
+        endfor
+    endif
+endf
+
+fun! s:map_each() abort
     " キーマッピングを行う関数
     if has_key(s:ipdb, 'maps') && g:ipdbdebug_map_enabled
         let l:map_options = has_key(s:ipdb, 'map_options') ? s:ipdb.map_options : ''
@@ -233,7 +249,8 @@ endf
 
 fun! ipdbdebug#jobsend(...) abort
     " ipdbにコマンドを送る関数
-    "    call ipdbdebug#jobsend('ipdbコマンド')
+    " USAGE:
+    "    call ipdbdebug#jobsend('ipdbのコマンド')
     if ipdbdebug#exist()
         let l:command = ''
         if a:0 > 0
@@ -251,47 +268,69 @@ fun! ipdbdebug#jobsend(...) abort
 endf
 
 fun! ipdbdebug#break() abort
+    " カーソル行をブレークポイントとして設定する関数
+    " カーソル行がすでにブレークポイントであれば解除する
     if ipdbdebug#exist()
-        let l:current_line = line('.')
         let l:line_str = join(split(getline('.'), '\ '))
-        let l:bp_already_exist_flag = 0
         if l:line_str ==# ''
-           \|| l:line_str[0] ==# '#'
-           \|| l:line_str[:2] ==# '"""'
-           \|| l:line_str[:2] ==# "'''"
+                    \|| l:line_str[0] ==# '#'
+                    \|| l:line_str[:2] ==# '"""'
+                    \|| l:line_str[:2] ==# "'''"
+            " コメント行は無視
             call ipdbdebug#jobsend('"*** blank or comment"')
             return
         endif
-        if has_key(s:ipdb, 'breakpoint')
-            for l:i in s:ipdb.breakpoint
-                if l:i == l:current_line
-                    let l:bp_already_exist_flag = 1
-                endif
-                if l:bp_already_exist_flag
+        let l:current_line = {expand('%:p'): line('.')}
+        let l:bp_exist = 0
+        if !has_key(s:ipdb, 'breakpoint')
+            " ブレークポイントを初めて追加する場合
+            let s:ipdb.breakpoint = [l:current_line]
+        else
+            let l:iter = 0
+            for l:bp in s:ipdb.breakpoint
+                " 現在行がブレークポイントに設定されているか確認
+                if keys(l:bp) ==# keys(l:current_line)
+                            \&& values(l:bp) == values(l:current_line)
+                    let l:bp_exist = 1
                     break
                 endif
+                let l:iter += 1
             endfor
-            if !l:bp_already_exist_flag
+            if l:bp_exist
+                " 現在行がブレークポイントに設定されている場合
+                call remove(s:ipdb.breakpoint, l:iter)
+                call s:show_highlight()
+                call ipdbdebug#jobsend('clear '.keys(l:current_line)[0].':'.values(l:current_line)[0])
+                return
+            else
+                " 現在行がブレークポイントに設定されていない場合
                 if len(s:ipdb.breakpoint) < 8
                     let s:ipdb.breakpoint += [l:current_line]
                 else
+                    " 8つ以上は matchaddpos() の上限なので追加できない
                     call ipdbdebug#jobsend('"too many breakpoints exist"')
                     return
                 endif
             endif
-        else
-            let s:ipdb.breakpoint = [l:current_line]
         endif
-        if l:bp_already_exist_flag
-            call ipdbdebug#jobsend('"line '.l:current_line.' already set a breakpoint"')
-            return
-        endif
-        call matchaddpos('IpdbDebugBreakPoint', s:ipdb.breakpoint)
-        call ipdbdebug#jobsend('break '.s:ipdb.breakpoint[-1])
+        call s:show_highlight()
+        call ipdbdebug#jobsend('break '.keys(l:current_line)[0].':'.values(l:current_line)[0])
     endif
 endf
 
+fun! s:show_highlight() abort
+    call clearmatches()
+    let l:highlight_line_list = []
+    for l:i in s:ipdb.breakpoint
+        if keys(l:i)[0] ==# expand('%:p')
+            let l:highlight_line_list += [values(l:i)[0]]
+        endif
+    endfor
+    call matchaddpos('IpdbDebugBreakPoint', l:highlight_line_list)
+endf
+
 fun! ipdbdebug#clear() abort
+    " ブレークポイントを全てクリアする関数
     if ipdbdebug#exist()
         if has_key(s:ipdb, 'breakpoint')
             call clearmatches()
@@ -327,7 +366,7 @@ fun! ipdbdebug#whos() abort
     " ipythonのマジックコマンド(%whos)を実行する関数
     if ipdbdebug#exist()
         let l:cmd = 'from IPython import get_ipython;'
-                  \.'get_ipython().find_line_magic("whos")()'
+                    \.'get_ipython().find_line_magic("whos")()'
         call ipdbdebug#jobsend(l:cmd)
     endif
 endf
@@ -357,43 +396,43 @@ endf
 
 " プラグインマッピング
 tno <buffer><silent> <Plug>(ipdbdebug_close)
-                    \ <C-\><C-n>:<C-u>call ipdbdebug#close()<CR>
+            \ <C-\><C-n>:<C-u>call ipdbdebug#close()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_close)
-                    \ :<C-u>call ipdbdebug#close()<CR>
+            \ :<C-u>call ipdbdebug#close()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_sigint)
-                    \ :<C-u>call ipdbdebug#sigint()<CR>
+            \ :<C-u>call ipdbdebug#sigint()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_enter)
-                    \ :<C-u>call ipdbdebug#jobsend()<CR>
+            \ :<C-u>call ipdbdebug#jobsend()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_help)
-                    \ :<C-u>call ipdbdebug#jobsend("help")<CR>
+            \ :<C-u>call ipdbdebug#jobsend("help")<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_next)
-                    \ :<C-u>call ipdbdebug#jobsend("next")<CR>
+            \ :<C-u>call ipdbdebug#jobsend("next")<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_step)
-                    \ :<C-u>call ipdbdebug#jobsend("step")<CR>
+            \ :<C-u>call ipdbdebug#jobsend("step")<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_where)
-                    \ :<C-u>call ipdbdebug#jobsend("where")<CR>
+            \ :<C-u>call ipdbdebug#jobsend("where")<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_return)
-                    \ :<C-u>call ipdbdebug#jobsend("return")<CR>
+            \ :<C-u>call ipdbdebug#jobsend("return")<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_continue)
-                    \ :<C-u>call ipdbdebug#jobsend("continue")<CR>
+            \ :<C-u>call ipdbdebug#jobsend("continue")<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_break)
-                    \ :<C-u>call ipdbdebug#break()<CR>
+            \ :<C-u>call ipdbdebug#break()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_clear)
-                    \ :<C-u>call ipdbdebug#clear()<CR>
+            \ :<C-u>call ipdbdebug#clear()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_until)
-                    \ :<C-u>call ipdbdebug#jobsend("until ".line("."))<CR>
+            \ :<C-u>call ipdbdebug#jobsend("until ".line("."))<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_print)
-                    \ :<C-u>call ipdbdebug#jobsend("pp ".expand("<cword>"))<CR>
+            \ :<C-u>call ipdbdebug#jobsend("pp ".expand("<cword>"))<CR>
 vno <buffer><silent> <Plug>(ipdbdebug_vprint)
-                    \ :<C-u>call ipdbdebug#vprint()<CR>
+            \ :<C-u>call ipdbdebug#vprint()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_whos)
-                    \ :<C-u>call ipdbdebug#whos()<CR>
+            \ :<C-u>call ipdbdebug#whos()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_display)
-                    \ :<C-u>call ipdbdebug#jobsend("display ".expand("<cword>"))<CR>
+            \ :<C-u>call ipdbdebug#jobsend("display ".expand("<cword>"))<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_goto_debugwin)
-                    \ :<C-u>call ipdbdebug#goto_debugwin()<CR>
+            \ :<C-u>call ipdbdebug#goto_debugwin()<CR>
 tno <buffer><silent> <Plug>(ipdbdebug_goto_scriptwin)
-                    \ <C-\><C-n>:<C-u>call ipdbdebug#goto_scriptwin()<CR>
+            \ <C-\><C-n>:<C-u>call ipdbdebug#goto_scriptwin()<CR>
 
 " コマンド
 fun! ipdbdebug#commands() abort
