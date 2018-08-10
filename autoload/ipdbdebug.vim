@@ -55,11 +55,7 @@ fun! ipdbdebug#open() abort
             call s:ipdbinit()
             " キーマッピングの設定
             call ipdbdebug#map()
-            " autocmdの設定 (定期実行関数の呼び出し)
-            aug ipdb_auto_command
-                au!
-                au CursorHold <buffer> call ipdbdebug#idle()
-            aug END
+            " スクリプトウィンドウのIDを保持
             let s:ipdb.script_winid = win_getid()
             " デバッグウィンドウを開く
             silent call splitterm#open('ipdb3', expand('%:p'))
@@ -87,6 +83,10 @@ fun! s:ipdbinit() abort
             if exists('*airline#add_statusline_func')
                 silent call airline#add_statusline_func('ipdbdebug#statusline')
             endif
+            " autocmdの設定 (定期実行関数の呼び出し)
+            aug ipdb_auto_command
+                au CursorHold <buffer> call ipdbdebug#idle()
+            aug END
         endif
         silent exe 'bnext'
         if bufnr('%') == l:current_bufnr
