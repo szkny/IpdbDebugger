@@ -7,6 +7,7 @@ scriptencoding utf-8
 
 "" ipdbによるPythonデバッガプラグイン
 " TODO:
+"   - helpコマンドで表示されるipdbコマンドを全て実装
 "   - printのデフォルトは<cword>ではなく左辺値にする
 "   - マッピング機能のデバッグ
 "   - airlineのモードカラー連携

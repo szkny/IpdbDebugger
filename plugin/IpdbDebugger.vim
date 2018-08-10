@@ -10,6 +10,10 @@ if !has('nvim')
     finish
 endif
 
+command! -complete=customlist,s:CompletionIpdbCommands
+            \-nargs=*
+            \Ipdb call s:ipdb_call(<f-args>)
+
 let g:ipdbdebug_map_enabled = get(g:, 'ipdbdebug_map_enabled', 0)
 let g:ipdbdebug_command_enabled = get(g:, 'ipdbdebug_command_enabled', 0)
 
@@ -59,4 +63,3 @@ fun! s:CompletionIpdbCommands(ArgLead, CmdLine, CusorPos)
     return filter(['close','help','maps','next','step','where','return','break','clear','continue','until','print','whos','display'],
                 \printf('v:val =~ "^%s"', a:ArgLead))
 endf
-command! -complete=customlist,s:CompletionIpdbCommands -nargs=* Ipdb call s:ipdb_call(<f-args>)
