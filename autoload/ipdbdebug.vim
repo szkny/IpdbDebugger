@@ -139,7 +139,7 @@ endf
 let s:ipdb.maps = [
     \['normal',   '<ESC>',      '<Plug>(ipdbdebug_close)'],
     \['normal',   '<C-[>',      '<Plug>(ipdbdebug_close)'],
-    \['normal',   'q',          '<Plug>(ipdbdebug_close)'],
+    \['normal',   '<leader>q',  '<Plug>(ipdbdebug_close)'],
     \['normal',   '<C-c>',      '<Plug>(ipdbdebug_sigint)'],
     \['normal',   '<CR>',       '<Plug>(ipdbdebug_enter)'],
     \['normal',   '<leader>h',  '<Plug>(ipdbdebug_help)'],
@@ -157,7 +157,7 @@ let s:ipdb.maps = [
 \]   " mode       {lhs}         {rhs}
     " \['normal',   'i',          '<Plug>(ipdbdebug_goto_debugwin)'],
     " \['terminal', '<ESC>',      '<C-\><C-n>:<C-u>call ipdbdebug#goto_scriptwin()<CR>'],
-let s:ipdb.map_options = '<silent> <buffer> <nowait>'
+let s:ipdb.map_options = '<buffer> <nowait>'
 
 fun! ipdbdebug#map() abort
     " 現在開いている全てのPythonスクリプトのバッファに対してマッピングを設定
@@ -192,7 +192,7 @@ fun! s:map_each() abort
             else
                 continue
             endif
-            let l:cmd .= ' '.s:ipdb.map_options.' '.l:key.' '.l:plugmap
+            let l:cmd .= ' '.l:map_options.' '.l:key.' '.l:plugmap
             silent exe l:cmd
         endfor
     endif
@@ -439,7 +439,6 @@ fun! ipdbdebug#commands() abort
     if ipdbdebug#exist()
         command! -nargs=* IpdbJobsend   call ipdbdebug#jobsend(<f-args>)
         command!          IpdbMaps      call ipdbdebug#map_show()
-        command!          IpdbEnter     call ipdbdebug#jobsend()
         command!          IpdbHelp      call ipdbdebug#jobsend('help')
         command!          IpdbNext      call ipdbdebug#jobsend('next')
         command!          IpdbStep      call ipdbdebug#jobsend('step')
