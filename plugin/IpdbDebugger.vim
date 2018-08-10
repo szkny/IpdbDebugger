@@ -14,8 +14,6 @@ command! IpdbToggle call ipdbdebug#toggle()
 command! -complete=customlist,s:CompletionIpdbCommands
             \ -nargs=*
             \ Ipdb call s:ipdb_call(<f-args>)
-command! -range
-            \ IpdbPrint call ipdbdebug#vprint()
 
 let g:ipdbdebug_map_enabled = get(g:, 'ipdbdebug_map_enabled', 0)
 let g:ipdbdebug_command_enabled = get(g:, 'ipdbdebug_command_enabled', 0)
