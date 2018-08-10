@@ -10,6 +10,7 @@ if !has('nvim')
     finish
 endif
 
+command! IpdbToggle call ipdbdebug#toggle()
 command! -complete=customlist,s:CompletionIpdbCommands
             \ -nargs=*
             \ Ipdb call s:ipdb_call(<f-args>)
