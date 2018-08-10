@@ -50,15 +50,9 @@ fun! ipdbdebug#open() abort
                 echon
             endif
             " デバッグモードの初期設定
-            silent write
             let s:ipdb.save_cpo = &cpoptions
             setlocal cpoptions&vim
-            let s:ipdb.save_updatetime = &updatetime
-            setlocal updatetime=100
-            setlocal nomodifiable
-            if exists('*airline#add_statusline_func')
-                silent call airline#add_statusline_func('ipdbdebug#statusline')
-            endif
+            call s:ipdbinit()
             " キーマッピングの設定
             call ipdbdebug#map()
             " autocmdの設定 (定期実行関数の呼び出し)
@@ -81,15 +75,49 @@ fun! ipdbdebug#open() abort
     endif
 endf
 
+fun! s:ipdbinit() abort
+    " 現在開いている全てのPythonスクリプトのバッファに対して初期設定を行う
+    let l:current_bufnr = bufnr('%')
+    for l:i in range(0, 10)
+        if &filetype ==# 'python'
+            silent write
+            let s:ipdb.save_updatetime = &updatetime
+            setlocal updatetime=100
+            setlocal nomodifiable
+            if exists('*airline#add_statusline_func')
+                silent call airline#add_statusline_func('ipdbdebug#statusline')
+            endif
+        endif
+        silent exe 'bnext'
+        if bufnr('%') == l:current_bufnr
+            break
+        endif
+    endfor
+endf
+
+fun! s:ipdbfinal() abort
+    " 現在開いている全てのPythonスクリプトのバッファに対して終了処理を行う
+    let l:current_bufnr = bufnr('%')
+    for l:i in range(0, 10)
+        if &filetype ==# 'python'
+            if exists('*airline#remove_statusline_func')
+                silent call airline#remove_statusline_func('ipdbdebug#statusline')
+            endif
+            let &cpoptions = s:ipdb.save_cpo
+            let &updatetime=s:ipdb.save_updatetime
+            setlocal modifiable
+        endif
+        silent exe 'bnext'
+        if bufnr('%') == l:current_bufnr
+            break
+        endif
+    endfor
+endf
+
 fun! ipdbdebug#close()
     " ipdbを終了する関数
     if win_gotoid(s:ipdb.script_winid)
-        if exists('*airline#remove_statusline_func')
-            silent call airline#remove_statusline_func('ipdbdebug#statusline')
-        endif
-        let &cpoptions = s:ipdb.save_cpo
-        let &updatetime=s:ipdb.save_updatetime
-        setlocal modifiable
+        call s:ipdbfinal()
         " call ipdbdebug#unmap()
         if has_key(s:ipdb, 'breakpoint')
             unlet s:ipdb.breakpoint
