@@ -53,16 +53,20 @@ fun! ipdbdebug#open() abort
             let s:ipdb.save_cpo = &cpoptions
             setlocal cpoptions&vim
             call s:ipdbinit()
-            " キーマッピングの設定
-            call ipdbdebug#map()
             " スクリプトウィンドウのIDを保持
             let s:ipdb.script_winid = win_getid()
+            " キーマッピングの設定
+            call ipdbdebug#map()
             " デバッグウィンドウを開く
-            silent call splitterm#open('ipdb3', expand('%:p'))
+            if exists('*splitterm#open')
+                call splitterm#open('ipdb3', expand('%:p'))
+            else
+                echoerr 'You have to install "szkny/SplitTerm" (neovim plugin) !'
+                return
+            endif
+            let s:ipdb.term_info = splitterm#getinfo()
             exe 'normal G'
             call s:map_each()
-            let s:ipdb.jobid = b:terminal_job_id
-            let s:ipdb.debug_winid = win_getid()
             call win_gotoid(s:ipdb.script_winid)
             call s:define_command()
         endif
@@ -118,7 +122,6 @@ fun! ipdbdebug#close()
     " ipdbを終了する関数
     if win_gotoid(s:ipdb.script_winid)
         call s:ipdbfinal()
-        " call ipdbdebug#unmap()
         if has_key(s:ipdb, 'breakpoint')
             unlet s:ipdb.breakpoint
             call clearmatches()
@@ -127,23 +130,18 @@ fun! ipdbdebug#close()
     aug ipdb_auto_command
         au!
     aug END
-    if win_gotoid(s:ipdb.debug_winid)
-        quit
-    endif
-    echon
-    if has_key(s:ipdb, 'jobid')
-        unlet s:ipdb.jobid
+    if has_key(s:ipdb, 'term_info')
+        call splitterm#close(s:ipdb.term_info)
+        unlet s:ipdb.term_info
     endif
     call s:define_command()
+    echon
 endf
 
 fun! ipdbdebug#exist() abort
     " ipdbを起動しているか確認する関数
-    let l:current_winid = win_getid()
-    if has_key(s:ipdb, 'jobid')
-      \&& has_key(s:ipdb, 'debug_winid')
-        \&& win_gotoid(s:ipdb.debug_winid)
-        call win_gotoid(l:current_winid)
+    if has_key(s:ipdb, 'term_info')
+       \&& splitterm#exist(s:ipdb.term_info)
         return 1
     else
         return 0
@@ -157,7 +155,7 @@ fun! ipdbdebug#idle() abort
     "       setlocal updatetime=100
     " と記述して更新間隔を設定 (ミリ秒)
     if ipdbdebug#exist()
-        " echon '-- DEBUG --'
+        echon '-- DEBUG --'
     else
         call ipdbdebug#close()
     endif
@@ -168,7 +166,6 @@ let s:ipdb.maps = [
     \['normal',   '<ESC>',      '<Plug>(ipdbdebug_close)'],
     \['normal',   '<C-[>',      '<Plug>(ipdbdebug_close)'],
     \['normal',   '<leader>q',  '<Plug>(ipdbdebug_close)'],
-    \['normal',   '<C-c>',      '<Plug>(ipdbdebug_sigint)'],
     \['normal',   '<CR>',       '<Plug>(ipdbdebug_enter)'],
     \['normal',   '<leader>h',  '<Plug>(ipdbdebug_help)'],
     \['normal',   '<leader>n',  '<Plug>(ipdbdebug_next)'],
@@ -254,7 +251,7 @@ endf
 
 fun! ipdbdebug#map_show() abort
     " mappingを確認するための関数
-    " if has_key(s:ipdb, 'maps') && g:ipdbdebug_map_enabled
+    if has_key(s:ipdb, 'maps') && g:ipdbdebug_map_enabled
         let l:all_maps = []
         let l:map_options = has_key(s:ipdb, 'map_options') ? s:ipdb.map_options : ''
         for [l:mode, l:key, l:plugmap] in s:ipdb.maps
@@ -276,7 +273,7 @@ fun! ipdbdebug#map_show() abort
         endfor
         " echo 'pp ['.join(l:all_maps,',').']'
         " call ipdbdebug#jobsend('pp "['.join(l:all_maps,',').']"')
-    " endif
+    endif
 endf
 
 fun! ipdbdebug#jobsend(...) abort
@@ -285,7 +282,7 @@ fun! ipdbdebug#jobsend(...) abort
     if ipdbdebug#exist()
         let l:command = join(a:000)
         try
-            call jobsend(s:ipdb.jobid, "\<C-u>".l:command."\<CR>")
+            call splitterm#jobsend_id(s:ipdb.term_info, l:command)
         catch
             call ipdbdebug#close()
         endtry
@@ -367,13 +364,6 @@ fun! ipdbdebug#clear() abort
     endif
 endf
 
-fun! ipdbdebug#sigint() abort
-    " ipdbにSIGINT(<C-c>)を送る関数
-    if ipdbdebug#exist()
-        call jobsend(s:ipdb.jobid, "\<C-c>")
-    endif
-endf
-
 fun! ipdbdebug#vprint() abort
     " ipdbにvisualモードで選択した変数を送りprintさせる関数
     if ipdbdebug#exist()
@@ -397,21 +387,6 @@ fun! ipdbdebug#whos() abort
     endif
 endf
 
-fun! ipdbdebug#goto_debugwin() abort
-    " ipdbのデバッグウィンドウに移動する関数
-    if ipdbdebug#exist() && has_key(s:ipdb, 'debug_winid')
-        call win_gotoid(s:ipdb.debug_winid)
-        startinsert
-    endif
-endf
-
-fun! ipdbdebug#goto_scriptwin() abort
-    " idpbのスクリプトウィンドウに移動する関数
-    if ipdbdebug#exist() && has_key(s:ipdb, 'script_winid')
-        call win_gotoid(s:ipdb.script_winid)
-    endif
-endf
-
 fun! ipdbdebug#statusline(...)
     " ipdbデバッグモード用のairline(plugin)の設定
     let w:airline_section_a = '%#__accent_bold#IPDB'
@@ -425,8 +400,6 @@ tno <buffer><silent> <Plug>(ipdbdebug_close)
             \ <C-\><C-n>:<C-u>call ipdbdebug#close()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_close)
             \ :<C-u>call ipdbdebug#close()<CR>
-nno <buffer><silent> <Plug>(ipdbdebug_sigint)
-            \ :<C-u>call ipdbdebug#sigint()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_enter)
             \ :<C-u>call ipdbdebug#jobsend()<CR>
 nno <buffer><silent> <Plug>(ipdbdebug_help)
