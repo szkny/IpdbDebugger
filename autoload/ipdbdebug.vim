@@ -8,10 +8,10 @@ scriptencoding utf-8
 "" ipdbによるPythonデバッガプラグイン
 
 " include guard
-if !has('nvim') || exists('g:ipdbdebugger_ipdbdebug_loaded')
+if !has('nvim') || exists('b:ipdbdebugger_ipdbdebug_loaded')
     finish
 endif
-let g:ipdbdebugger_ipdbdebug_loaded = 1
+let b:ipdbdebugger_ipdbdebug_loaded = 1
 
 " ipdbdebuggerのインスタンス
 let s:ipdb = {}
