@@ -10,6 +10,11 @@ if !has('nvim')
     finish
 endif
 
+if !exists('*splitterm#open')
+    echomsg 'IpdbDebugger.vim is based on szkny/SplitTerm.'
+    finish
+endif
+
 command! IpdbToggle call ipdbdebug#toggle()
 command! -complete=customlist,s:CompletionIpdbCommands
             \ -nargs=*
