@@ -11,7 +11,7 @@ if !has('nvim')
 endif
 
 if !exists('*splitterm#open')
-    echomsg 'IpdbDebugger.vim is based on szkny/SplitTerm.'
+    echoerr 'You have to install "szkny/SplitTerm" (neovim plugin) !'
     finish
 endif
 
