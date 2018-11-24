@@ -49,13 +49,8 @@ fun! ipdbdebug#open() abort
             " キーマッピングの設定
             call ipdbdebug#map()
             " デバッグウィンドウを開く
-            if exists('*splitterm#open')
-                let s:ipdb.term_info =
-                            \ splitterm#open('ipdb3', expand('%:p'))
-            else
-                echoerr 'You have to install "szkny/SplitTerm" (neovim plugin) !'
-                return
-            endif
+            let s:ipdb.term_info =
+                        \ splitterm#open('ipdb3', expand('%:p'))
             exe 'normal G'
             call s:map_each()
             call win_gotoid(s:ipdb.script_winid)
