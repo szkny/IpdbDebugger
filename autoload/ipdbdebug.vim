@@ -50,12 +50,12 @@ fun! ipdbdebug#open() abort
             call ipdbdebug#map()
             " デバッグウィンドウを開く
             if exists('*splitterm#open')
-                call splitterm#open('ipdb3', expand('%:p'))
+                let s:ipdb.term_info =
+                            \ splitterm#open('ipdb3', expand('%:p'))
             else
                 echoerr 'You have to install "szkny/SplitTerm" (neovim plugin) !'
                 return
             endif
-            let s:ipdb.term_info = splitterm#getinfo()
             exe 'normal G'
             call s:map_each()
             call win_gotoid(s:ipdb.script_winid)
